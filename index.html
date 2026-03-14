@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MobilityPro">
+<title>MobilityPro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --surface3: #252533;
+    --accent: #c8f542;
+    --accent2: #7b61ff;
+    --accent3: #ff6b6b;
+    --text: #f0f0f8;
+    --text2: #9090a8;
+    --text3: #5a5a72;
+    --cadera: #ff9f5a;
+    --rodilla: #5af5a0;
+    --toracica: #5ab4f5;
+    --hombro: #f55ab4;
+    --border: rgba(255,255,255,0.07);
+    --radius: 16px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.5;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; flex-direction: column; min-height: 100vh; position: relative; z-index: 1; }
+  .screen.active { display: flex; }
+
+  /* ── NAV ── */
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: calc(var(--safe-top) + 16px) 20px 16px;
+    position: sticky; top: 0; background: var(--bg);
+    border-bottom: 1px solid var(--border); z-index: 10;
+  }
+  .nav-logo { font-family: 'DM Serif Display', serif; font-size: 22px; letter-spacing: -0.5px; }
+  .nav-logo span { color: var(--accent); }
+  .nav-back {
+    background: var(--surface); border: none; color: var(--text2);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 8px 14px;
+    border-radius: 50px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding-bottom: var(--safe-bottom);
+    z-index: 100;
+  }
+  .bottom-nav button {
+    flex: 1; background: none; border: none; color: var(--text3);
+    font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
+    padding: 12px 4px 10px; cursor: pointer; display: flex;
+    flex-direction: column; align-items: center; gap: 4px; transition: color 0.2s;
+  }
+  .bottom-nav button.active { color: var(--accent); }
+  .bottom-nav button svg { width: 22px; height: 22px; }
+
+  /* ── HOME ── */
+  .home-content { padding: 24px 20px 100px; flex: 1; }
+
+  .hero {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; right: -20px; top: -20px;
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(200,245,66,0.12), transparent 70%);
+    border-radius: 50%;
+  }
+  .hero-date { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .hero-title { font-family: 'DM Serif Display', serif; font-size: 32px; line-height: 1.15; margin-bottom: 4px; }
+  .hero-title em { color: var(--accent); font-style: italic; }
+  .hero-sub { font-size: 14px; color: var(--text2); }
+
+  .section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text3); margin-bottom: 12px; font-weight: 600;
+  }
+
+  /* ── ZONE CARDS ── */
+  .zones-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+  .zone-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 16px;
+    cursor: pointer; transition: transform 0.15s, border-color 0.15s;
+    position: relative; overflow: hidden;
+  }
+  .zone-card:active { transform: scale(0.97); }
+  .zone-card::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  }
+  .zone-card[data-zone="cadera"]::before { background: var(--cadera); }
+  .zone-card[data-zone="rodilla"]::before { background: var(--rodilla); }
+  .zone-card[data-zone="toracica"]::before { background: var(--toracica); }
+  .zone-card[data-zone="hombro"]::before { background: var(--hombro); }
+  .zone-card:hover { border-color: rgba(255,255,255,0.15); }
+
+  .zone-dot {
+    width: 10px; height: 10px; border-radius: 50%; margin-bottom: 12px;
+  }
+  .zone-card[data-zone="cadera"] .zone-dot { background: var(--cadera); }
+  .zone-card[data-zone="rodilla"] .zone-dot { background: var(--rodilla); }
+  .zone-card[data-zone="toracica"] .zone-dot { background: var(--toracica); }
+  .zone-card[data-zone="hombro"] .zone-dot { background: var(--hombro); }
+
+  .zone-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .zone-count { font-size: 12px; color: var(--text3); }
+
+  /* ── DURATION SELECTOR ── */
+  .duration-row { display: flex; gap: 10px; margin-bottom: 28px; }
+  .dur-btn {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text2); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500; padding: 14px 8px;
+    border-radius: 12px; cursor: pointer; transition: all 0.15s;
+    text-align: center;
+  }
+  .dur-btn.active {
+    background: var(--accent); color: #0a0a0f;
+    border-color: var(--accent); font-weight: 600;
+  }
+  .dur-btn span { display: block; font-size: 10px; opacity: 0.7; margin-top: 2px; }
+
+  /* ── START BTN ── */
+  .start-btn {
+    width: 100%; padding: 18px;
+    background: var(--accent); color: #0a0a0f;
+    border: none; border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s, opacity 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .start-btn:active { transform: scale(0.98); opacity: 0.9; }
+  .start-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* ── SESSION SCREEN ── */
+  .session-header {
+    padding: calc(var(--safe-top) + 16px) 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .session-zone-badge {
+    font-size: 12px; font-weight: 600; padding: 5px 12px;
+    border-radius: 50px; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .session-progress-bar {
+    height: 2px; background: var(--surface3); position: relative;
+  }
+  .session-progress-fill {
+    height: 100%; background: var(--accent);
+    transition: width 0.4s ease; border-radius: 1px;
+  }
+
+  .session-content { flex: 1; padding: 24px 20px; overflow-y: auto; padding-bottom: 120px; }
+
+  .ex-counter { font-size: 12px; color: var(--text3); margin-bottom: 20px; text-align: center; }
+
+  .ex-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px 24px; margin-bottom: 16px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .ex-card.current {
+    border-color: var(--accent); background: var(--surface2);
+  }
+  .ex-card.current::before {
+    content: 'AHORA';
+    position: absolute; top: 12px; right: 16px;
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  /* Video placeholder — listo para el futuro */
+  .video-placeholder {
+    background: var(--surface3);
+    border-radius: 12px;
+    height: 160px;
+    margin-bottom: 20px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border: 1px dashed var(--border);
+    gap: 8px;
+    position: relative; overflow: hidden;
+  }
+  .video-placeholder .vp-icon {
+    width: 44px; height: 44px;
+    background: var(--surface2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .video-placeholder .vp-icon svg { width: 18px; height: 18px; color: var(--text3); }
+  .video-placeholder p { font-size: 12px; color: var(--text3); }
+  .video-placeholder small { font-size: 10px; color: var(--text3); opacity: 0.6; }
+
+  .ex-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px; line-height: 1.2; margin-bottom: 10px;
+  }
+  .ex-desc { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+
+  .ex-tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .tag {
+    font-size: 11px; font-weight: 600; padding: 4px 12px;
+    border-radius: 50px; text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .tag-nivel-principiante { background: rgba(90,245,160,0.12); color: var(--rodilla); }
+  .tag-nivel-intermedio { background: rgba(255,159,90,0.12); color: var(--cadera); }
+  .tag-nivel-avanzado { background: rgba(255,107,107,0.12); color: var(--accent3); }
+  .tag-material { background: rgba(123,97,255,0.12); color: var(--accent2); }
+  .tag-sin-material { background: rgba(144,144,168,0.1); color: var(--text3); }
+
+  /* ── TIMER ── */
+  .timer-block {
+    background: var(--surface3); border-radius: 14px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .timer-display {
+    font-family: 'DM Serif Display', serif;
+    font-size: 56px; text-align: center; letter-spacing: -2px;
+    line-height: 1; margin-bottom: 16px;
+  }
+  .timer-display.running { color: var(--accent); }
+  .timer-display.done { color: var(--rodilla); }
+
+  .timer-controls { display: flex; gap: 10px; }
+  .timer-btn {
+    flex: 1; padding: 14px;
+    border: 1px solid var(--border); border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .timer-btn.primary { background: var(--accent); color: #0a0a0f; border-color: var(--accent); }
+  .timer-btn.secondary { background: var(--surface2); color: var(--text2); }
+  .timer-btn:active { transform: scale(0.97); }
+
+  .timer-presets { display: flex; gap: 8px; margin-bottom: 12px; justify-content: center; }
+  .preset-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); font-family: 'DM Sans', sans-serif;
+    font-size: 12px; padding: 6px 14px; border-radius: 50px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .preset-btn.active { background: var(--accent); color: #0a0a0f; border-color: var(--accent); font-weight: 600; }
+
+  /* ── SESSION BOTTOM ── */
+  .session-bottom {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 16px 20px calc(var(--safe-bottom) + 16px);
+    background: linear-gradient(transparent, var(--bg) 30%);
+    display: flex; gap: 12px;
+  }
+  .next-btn {
+    flex: 1; padding: 18px;
+    background: var(--accent); color: #0a0a0f;
+    border: none; border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .skip-btn {
+    padding: 18px 20px;
+    background: var(--surface2); color: var(--text2);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s;
+  }
+
+  /* ── COMPLETE SCREEN ── */
+  .complete-content {
+    flex: 1; padding: 40px 24px 100px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+  }
+  .complete-ring {
+    width: 100px; height: 100px; border-radius: 50%;
+    background: rgba(200,245,66,0.1);
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; margin-bottom: 28px;
+    animation: pulseRing 2s ease-in-out infinite;
+  }
+  @keyframes pulseRing {
+    0%,100% { box-shadow: 0 0 0 0 rgba(200,245,66,0.2); }
+    50% { box-shadow: 0 0 0 16px rgba(200,245,66,0); }
+  }
+  .complete-title { font-family: 'DM Serif Display', serif; font-size: 34px; margin-bottom: 10px; }
+  .complete-sub { font-size: 15px; color: var(--text2); margin-bottom: 32px; line-height: 1.6; }
+  .complete-stats {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px; width: 100%; margin-bottom: 32px;
+  }
+  .stat-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 8px; text-align: center;
+  }
+  .stat-val { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--accent); }
+  .stat-lbl { font-size: 11px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── HISTORY SCREEN ── */
+  .history-content { padding: 20px 20px 100px; flex: 1; }
+  .history-empty {
+    text-align: center; padding: 60px 20px;
+    color: var(--text3); font-size: 15px; line-height: 1.7;
+  }
+  .history-empty .emoji { font-size: 40px; display: block; margin-bottom: 16px; }
+
+  .history-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    margin-bottom: 10px; display: flex;
+    align-items: center; gap: 16px;
+  }
+  .hist-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .hist-info { flex: 1; }
+  .hist-date { font-size: 12px; color: var(--text3); margin-bottom: 3px; }
+  .hist-zone { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .hist-detail { font-size: 12px; color: var(--text2); }
+  .hist-dur { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--accent); }
+
+  /* ── ANIMATIONS ── */
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .slide-up { animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
+  /* ── PREVIEW SCREEN ── */
+  .preview-content { padding: 20px 20px 120px; flex: 1; overflow-y: auto; }
+
+  .preview-header-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 20px 16px;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 14px;
+  }
+  .preview-zone-pill {
+    font-size: 11px; font-weight: 700; padding: 5px 14px;
+    border-radius: 50px; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;
+  }
+  .preview-meta { flex: 1; }
+  .preview-meta-title { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+  .preview-meta-sub { font-size: 13px; color: var(--text2); }
+
+  .preview-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .preview-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 18px;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .preview-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--text3);
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .preview-item-info { flex: 1; min-width: 0; }
+  .preview-item-name { font-size: 15px; font-weight: 600; margin-bottom: 5px; line-height: 1.3; }
+  .preview-item-desc { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 8px; }
+  .preview-item-steps {
+    font-size: 12px; color: var(--text3); line-height: 1.8;
+    padding-left: 12px; border-left: 2px solid var(--surface3);
+    margin-bottom: 8px;
+  }
+  .preview-item-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .preview-bottom {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 16px 20px calc(var(--safe-bottom) + 16px);
+    background: linear-gradient(transparent, var(--bg) 30%);
+    display: flex; gap: 12px;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     PANTALLA: HOME
+═══════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="nav">
+    <div class="nav-logo">Mobility<span>Pro</span></div>
+    <div style="font-size:12px;color:var(--text3)" id="home-streak"></div>
+  </div>
+  <div class="home-content fade-in">
+
+    <div class="hero">
+      <div class="hero-date" id="hero-date"></div>
+      <div class="hero-title">Elige tu<br><em>sesión</em> de hoy</div>
+      <div class="hero-sub">Selecciona zona y duración</div>
+    </div>
+
+    <div class="section-label">Zona de trabajo</div>
+    <div class="zones-grid">
+      <div class="zone-card" data-zone="cadera" onclick="selectZone('cadera')">
+        <div class="zone-dot"></div>
+        <div class="zone-name">Cadera</div>
+        <div class="zone-count">20 ejercicios</div>
+      </div>
+      <div class="zone-card" data-zone="rodilla" onclick="selectZone('rodilla')">
+        <div class="zone-dot"></div>
+        <div class="zone-name">Rodilla / Tobillo</div>
+        <div class="zone-count">20 ejercicios</div>
+      </div>
+      <div class="zone-card" data-zone="toracica" onclick="selectZone('toracica')">
+        <div class="zone-dot"></div>
+        <div class="zone-name">Torácica</div>
+        <div class="zone-count">20 ejercicios</div>
+      </div>
+      <div class="zone-card" data-zone="hombro" onclick="selectZone('hombro')">
+        <div class="zone-dot"></div>
+        <div class="zone-name">Hombro</div>
+        <div class="zone-count">20 ejercicios</div>
+      </div>
+    </div>
+
+    <div class="section-label">Duración</div>
+    <div class="duration-row">
+      <button class="dur-btn" data-min="10" onclick="selectDuration(10)">10<span>min</span></button>
+      <button class="dur-btn" data-min="15" onclick="selectDuration(15)">15<span>min</span></button>
+      <button class="dur-btn" data-min="20" onclick="selectDuration(20)">20<span>min</span></button>
+    </div>
+
+    <button class="start-btn" id="start-btn" disabled onclick="startSession()">
+      Generar protocolo
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANTALLA: VISTA PREVIA
+═══════════════════════════════════ -->
+<div id="screen-preview" class="screen">
+  <div class="nav">
+    <button class="nav-back" onclick="showScreen('home')">← Volver</button>
+    <div class="nav-logo">Mobility<span>Pro</span></div>
+    <div style="width:70px"></div>
+  </div>
+  <div class="preview-content fade-in">
+    <div class="preview-header-card">
+      <div class="preview-zone-pill" id="preview-zone-pill"></div>
+      <div class="preview-meta">
+        <div class="preview-meta-title" id="preview-meta-title"></div>
+        <div class="preview-meta-sub" id="preview-meta-sub"></div>
+      </div>
+    </div>
+    <div class="section-label" style="margin-bottom:14px">Secuencia completa</div>
+    <div class="preview-list" id="preview-list"></div>
+  </div>
+  <div class="preview-bottom">
+    <button class="next-btn" onclick="launchSession()">Empezar sesión →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANTALLA: SESIÓN
+═══════════════════════════════════ -->
+<div id="screen-session" class="screen">
+  <div class="session-header">
+    <button class="nav-back" onclick="confirmExit()">← Salir</button>
+    <div class="session-zone-badge" id="session-badge"></div>
+    <div style="font-size:13px;color:var(--text2)" id="session-time-left"></div>
+  </div>
+  <div class="session-progress-bar">
+    <div class="session-progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+
+  <div class="session-content" id="session-content">
+    <!-- ejercicios renderizados aquí -->
+  </div>
+
+  <div class="session-bottom">
+    <button class="skip-btn" onclick="skipExercise()">Omitir</button>
+    <button class="next-btn" id="next-btn" onclick="nextExercise()">Siguiente →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANTALLA: COMPLETADO
+═══════════════════════════════════ -->
+<div id="screen-complete" class="screen">
+  <div class="nav">
+    <div class="nav-logo">Mobility<span>Pro</span></div>
+  </div>
+  <div class="complete-content fade-in">
+    <div class="complete-ring">✓</div>
+    <div class="complete-title">¡Sesión completada!</div>
+    <div class="complete-sub" id="complete-sub"></div>
+    <div class="complete-stats">
+      <div class="stat-box">
+        <div class="stat-val" id="stat-ejercicios">0</div>
+        <div class="stat-lbl">Ejercicios</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-tiempo">0</div>
+        <div class="stat-lbl">Minutos</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-racha">0</div>
+        <div class="stat-lbl">Racha</div>
+      </div>
+    </div>
+    <button class="start-btn" onclick="showScreen('home')">Nueva sesión</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANTALLA: HISTORIAL
+═══════════════════════════════════ -->
+<div id="screen-history" class="screen">
+  <div class="nav">
+    <div class="nav-logo">Mobility<span>Pro</span></div>
+  </div>
+  <div class="history-content fade-in" id="history-content">
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     BOTTOM NAV (siempre visible salvo sesión)
+═══════════════════════════════════ -->
+<div class="bottom-nav" id="bottom-nav">
+  <button class="active" id="nav-home" onclick="showScreen('home')">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    Inicio
+  </button>
+  <button id="nav-history" onclick="showScreen('history')">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    Historial
+  </button>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// BASE DE DATOS DE EJERCICIOS
+// ═══════════════════════════════════
+const DB = {
+  cadera: [
+    { name: "90/90 Hip Stretch", desc: "Rotación interna y externa de cadera en suelo. Siéntate con ambas piernas en 90° y trabaja el ROM de cada lado.", nivel: "Principiante", material: "Sin material" },
+    { name: "Pigeon Pose", desc: "Apertura de cadera posterior. Coloca la pierna delantera en 90° y extiende la trasera, manteniendo las caderas niveladas.", nivel: "Principiante", material: "Sin material" },
+    { name: "Hip Circles Cuadrúpedo", desc: "En cuadrúpeda, describe círculos completos con la rodilla hacia fuera. Activa toda la cápsula articular.", nivel: "Principiante", material: "Sin material" },
+    { name: "Deep Squat Hold", desc: "Mantén la posición de sentadilla profunda con talones en el suelo y espalda erguida. Trabaja tobillo, cadera y torácica.", nivel: "Principiante", material: "Sin material" },
+    { name: "Frog Stretch", desc: "Apertura bilateral de caderas en suelo. Rodillas en 90° hacia fuera, presiona suavemente las caderas hacia abajo.", nivel: "Intermedio", material: "Sin material" },
+    { name: "Hip Flexor Stretch en Zancada", desc: "Zancada baja con rodilla trasera en suelo. Empuja la cadera hacia adelante para estirar psoas e iliaco.", nivel: "Principiante", material: "Sin material" },
+    { name: "Rotación Interna de Cadera", desc: "En suelo, trabaja la rotación interna limitante que afecta a la sentadilla. Clave para quienes tienen rodillas que se cierran.", nivel: "Principiante", material: "Sin material" },
+    { name: "Glute Smash con Pelota", desc: "Liberación miofascial del glúteo con pelota de lacrosse o similar. Busca los puntos de tensión.", nivel: "Intermedio", material: "Sin material" },
+    { name: "Active Pigeon Pulse", desc: "Pigeon con pulsos activos al final del rango. Cada pulso construye movilidad activa, no solo pasiva.", nivel: "Intermedio", material: "Sin material" },
+    { name: "Supine Hip Rotation", desc: "En decúbito supino, rota la cadera hacia dentro y fuera con control. Trabaja el ROM sin carga.", nivel: "Principiante", material: "Sin material" },
+    { name: "PAILS & RAILS Cadera", desc: "Contracción isométrica progresiva en el límite del rango. 5 seg contracción hacia el suelo, 5 seg levantar.", nivel: "Avanzado", material: "Banda elástica" },
+    { name: "Banded Hip Distraction", desc: "Tracción con banda anclada al rack para crear espacio en la articulación de cadera. Muy efectivo post-WOD.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "Banded Hip Flexor Stretch", desc: "Estiramiento de flexores de cadera con banda proporcionando tracción adicional en la articulación.", nivel: "Principiante", material: "Banda elástica" },
+    { name: "Goblet Squat Excéntrico", desc: "Sentadilla goblet con descenso muy lento (4-5 seg) usando el peso del KB para profundizar el rango.", nivel: "Intermedio", material: "Kettlebell" },
+    { name: "Hip Opener con Disco", desc: "Sentado con piernas abiertas, coloca el disco en el muslo para añadir carga en la apertura de cadera.", nivel: "Intermedio", material: "Disco" },
+    { name: "Banded 90/90 con Pulso", desc: "90/90 con la banda añadiendo tracción al tobillo. Combina movilidad pasiva y activa.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "Kettlebell Hip Around", desc: "De pie, describe círculos de cadera sujetando el KB. Mejora la movilidad activa rotacional.", nivel: "Intermedio", material: "Kettlebell" },
+    { name: "Sumo Squat con Disco", desc: "Sentadilla sumo ancha usando el disco como contrapeso. Mantén el pecho erguido y profundiza.", nivel: "Principiante", material: "Disco" },
+    { name: "Banded Hip Internal Rotation", desc: "Banda anclada baja asistiendo la rotación interna de cadera. Trabaja el déficit más común en CrossFit.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "Cossack Squat con KB", desc: "Sentadilla lateral profunda usando el KB como contrapeso. Trabaja cadera y aductor simultáneamente.", nivel: "Avanzado", material: "Kettlebell" },
+  ],
+  rodilla: [
+    { name: "Knee-to-Wall Drill", desc: "Test y mejora de dorsiflexión. Rodilla toca pared sin que el talón se levante. Mide la distancia pie-pared.", nivel: "Principiante", material: "Sin material" },
+    { name: "Deep Squat Talones en Suelo", desc: "Sentadilla profunda manteniendo talones pegados al suelo. Identifica y trabaja las restricciones de tobillo.", nivel: "Principiante", material: "Sin material" },
+    { name: "Tib Raises", desc: "Apoyado en pared, levanta los dedos del suelo mientras los talones permanecen fijos. Fortalece tibial anterior.", nivel: "Principiante", material: "Sin material" },
+    { name: "Ankle Circles Activos", desc: "Movilización articular activa del tobillo en todos los planos. Realiza círculos lentos y controlados.", nivel: "Principiante", material: "Sin material" },
+    { name: "Lunge Ankle Stretch", desc: "Zancada baja con rodilla delantera tocando pared para estirar la dorsiflexión bajo carga.", nivel: "Principiante", material: "Sin material" },
+    { name: "Reverse Bear Crawl", desc: "Gatea hacia atrás manteniendo las rodillas a 5 cm del suelo. Movilidad combinada tobillo-rodilla.", nivel: "Intermedio", material: "Sin material" },
+    { name: "Half Kneeling Ankle Drill", desc: "En posición de media rodilla, lleva la rodilla delantera hacia delante sin levantar el talón.", nivel: "Principiante", material: "Sin material" },
+    { name: "Knee CARs", desc: "Rotaciones articulares controladas de rodilla. Traza el mayor arco posible sin compensar con la cadera.", nivel: "Intermedio", material: "Sin material" },
+    { name: "Calf Stretch en Pared", desc: "Estiramiento de gemelo y sóleo por separado. Cada uno limita la dorsiflexión de forma diferente.", nivel: "Principiante", material: "Sin material" },
+    { name: "Seated Ankle Flexion/Extension", desc: "Sentado con pierna extendida, trabaja la flexión y extensión máxima de tobillo con control.", nivel: "Principiante", material: "Sin material" },
+    { name: "Banded Ankle Distraction", desc: "Banda anclada al rack a nivel del tobillo. La tracción crea espacio en la articulación para mejorar la dorsiflexión.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "Banded Knee-to-Wall", desc: "Knee-to-wall con banda añadiendo tracción posterior en el talón. Versión más efectiva para restricciones articulares.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "Foam Roller Calf Smash", desc: "Liberación miofascial de gemelos cruzando una pierna sobre la otra para aumentar la presión.", nivel: "Principiante", material: "Foam roller" },
+    { name: "Foam Roller Tibialis Smash", desc: "Rueda el foam roller por el tibial anterior (espinilla). Reduce la tensión que limita la dorsiflexión.", nivel: "Principiante", material: "Foam roller" },
+    { name: "Plate Loaded Dorsiflexion", desc: "En posición de knee-to-wall, coloca un disco en el muslo para aumentar la carga sobre la dorsiflexión.", nivel: "Intermedio", material: "Disco" },
+    { name: "Banded Calf Stretch", desc: "Estiramiento de gemelo con banda. La tracción permite ir más profundo en el estiramiento.", nivel: "Principiante", material: "Banda elástica" },
+    { name: "Foam Roller IT Band", desc: "Liberación lateral de la rodilla y banda iliotibial. Posición lateral, rueda desde cadera hasta rodilla.", nivel: "Principiante", material: "Foam roller" },
+    { name: "Kettlebell Ankle Stretch", desc: "Coloca el KB sobre el muslo en posición de knee-to-wall para incrementar la carga en la dorsiflexión.", nivel: "Intermedio", material: "Kettlebell" },
+    { name: "Banded Terminal Knee Extension", desc: "Banda en la parte posterior de la rodilla. Extiende completamente contra la resistencia. Activa el vasto interno.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "Foam Roller Quad Smash", desc: "Liberación del cuádriceps en prono. Necesaria para recuperar la flexión completa de rodilla.", nivel: "Principiante", material: "Foam roller" },
+  ],
+  toracica: [
+    { name: "Cat-Cow", desc: "Flexión y extensión segmentaria de columna en cuadrúpeda. Ve despacio y busca el movimiento en cada vértebra torácica.", nivel: "Principiante", material: "Sin material" },
+    { name: "Rotación Torácica en Child's Pose", desc: "En child's pose, coloca una mano en la nuca y rota hacia el techo. La posición inicial bloquea la lumbar.", nivel: "Principiante", material: "Sin material" },
+    { name: "Thread the Needle", desc: "En cuadrúpeda, desliza un brazo por debajo del cuerpo. Rotación torácica con rango amplio y controlado.", nivel: "Principiante", material: "Sin material" },
+    { name: "Thoracic Extension en Suelo", desc: "En prono con manos en la nuca, levanta el pecho del suelo. Trabaja la extensión torácica pura.", nivel: "Principiante", material: "Sin material" },
+    { name: "Open Book Rotation", desc: "En decúbito lateral con rodillas apiladas, abre el brazo superior hacia el otro lado. Excelente ROM torácico.", nivel: "Principiante", material: "Sin material" },
+    { name: "Quadruped Thoracic Rotation", desc: "En cuadrúpeda, una mano en la nuca. Lleva el codo hacia el techo manteniendo la cadera quieta.", nivel: "Intermedio", material: "Sin material" },
+    { name: "Wall Thoracic Rotation", desc: "De pie junto a la pared, pies paralelos. Rota la parte superior del cuerpo sin mover los pies.", nivel: "Principiante", material: "Sin material" },
+    { name: "Seated Thoracic Rotation", desc: "Sentado con piernas cruzadas, cruza los brazos en el pecho y rota. Aísla la rotación torácica.", nivel: "Principiante", material: "Sin material" },
+    { name: "Prone Thoracic Extension", desc: "Desde prono (cobra), levanta el pecho con las manos en el suelo. Trabaja la extensión torácica con gravedad.", nivel: "Principiante", material: "Sin material" },
+    { name: "Standing Thoracic Rotation", desc: "De pie con palo en hombros, pies fijos. Rota solo la parte alta del cuerpo. Aísla el segmento torácico.", nivel: "Principiante", material: "Sin material" },
+    { name: "Foam Roller Thoracic Extension", desc: "Apoya el foam perpendicular a la columna. Ve segmento a segmento desde T4 a T12. Extiende sobre cada nivel.", nivel: "Principiante", material: "Foam roller" },
+    { name: "Foam Roller Thoracic Rotation", desc: "Foam roller longitudinal bajo la columna. Deja caer las rodillas a un lado mientras el hombro opuesto permanece abajo.", nivel: "Intermedio", material: "Foam roller" },
+    { name: "PVC Codos en Banco", desc: "Arrodillado ante un banco, codos apoyados con PVC. Deja caer la cabeza y el pecho hacia el suelo.", nivel: "Intermedio", material: "Sin material" },
+    { name: "Band Pull-Aparts", desc: "Con banda a la altura del pecho, lleva los brazos hacia atrás juntando los omóplatos. Activa la cadena posterior.", nivel: "Principiante", material: "Banda elástica" },
+    { name: "Foam Roller T-Spine Smash", desc: "Con el foam perpendicular, aplica presión en cada nivel torácico mientras mueves los brazos overhead.", nivel: "Intermedio", material: "Foam roller" },
+    { name: "Banded Thoracic Distraction", desc: "Banda anclada al rack a la altura de la espalda. Apoya un nivel torácico y deja que la banda cree tracción.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "Disco Overhead Thoracic Walk", desc: "Camina sosteniendo el disco con brazos extendidos overhead. La extensión torácica es necesaria para mantener la postura.", nivel: "Intermedio", material: "Disco" },
+    { name: "Foam Roller Lat Stretch", desc: "Sentado lateral al foam, apoya el lat y estira el brazo overhead. Libera la limitación torácica del dorsal.", nivel: "Principiante", material: "Foam roller" },
+    { name: "Banded Thoracic Extension", desc: "Banda anclada al rack a la altura de la espalda media. Extiende la torácica contra la resistencia de la banda.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "Foam Roller Side Bend", desc: "Foam roller longitudinal. Deja caer un lado del cuerpo para estirar el cuadrado lumbar y la cadena lateral.", nivel: "Principiante", material: "Foam roller" },
+  ],
+  hombro: [
+    { name: "Sleeper Stretch", desc: "En decúbito lateral, lleva el antebrazo hacia abajo con la otra mano. Trabaja la rotación interna del hombro.", nivel: "Principiante", material: "Sin material" },
+    { name: "Shoulder CARs", desc: "Rotaciones articulares controladas de hombro. Traza el mayor arco posible con el brazo. Movilidad activa pura.", nivel: "Intermedio", material: "Sin material" },
+    { name: "Wall Shoulder Flexion Stretch", desc: "Frente a la pared, sube el brazo hasta el límite y deja que la pared lleve el rango un poco más.", nivel: "Principiante", material: "Sin material" },
+    { name: "Doorway Chest Stretch", desc: "Brazo en 90° apoyado en el marco. Abre el pecho girando hacia el lado opuesto. Estira cápsula anterior.", nivel: "Principiante", material: "Sin material" },
+    { name: "Cross-Body Shoulder Stretch", desc: "Lleva el brazo cruzado al pecho y presiona con el otro. Trabaja el posterior del hombro y el redondo menor.", nivel: "Principiante", material: "Sin material" },
+    { name: "Prone Y-T-W", desc: "En prono, levanta los brazos en posiciones Y, T y W. Activa trapecio medio, inferior y romboides.", nivel: "Principiante", material: "Sin material" },
+    { name: "Wall Slides", desc: "Apoyado en la pared, sube y baja los brazos manteniendo el contacto. Trabaja el ritmo escápulo-humeral.", nivel: "Principiante", material: "Sin material" },
+    { name: "Shoulder External Rotation Suelo", desc: "En prono con brazo en 90°, levanta el antebrazo hacia el techo. Trabaja los rotadores externos.", nivel: "Principiante", material: "Sin material" },
+    { name: "Bear Hug Stretch", desc: "Abraza tus propios hombros y lleva los codos adelante. Estira romboides y la cara posterior del hombro.", nivel: "Principiante", material: "Sin material" },
+    { name: "Active Hang", desc: "Cuelga de una barra con activación escapular. Alterna hombros relajados y activos. Descomprime la articulación.", nivel: "Intermedio", material: "Sin material" },
+    { name: "Banded Shoulder Distraction", desc: "Banda anclada al rack a la altura del hombro. Aleja el cuerpo para crear tracción articular.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "PVC Pass-Through", desc: "Con agarre amplio en el PVC, lleva los brazos de delante hacia atrás sin doblar los codos.", nivel: "Principiante", material: "Sin material" },
+    { name: "Banded External Rotation", desc: "Banda a la altura del codo, rota el antebrazo hacia fuera contra la resistencia. Fortalece manguito rotador.", nivel: "Principiante", material: "Banda elástica" },
+    { name: "Lat Stretch con Foam Roller", desc: "Sentado lateral al foam, apoya el lat con brazo extendido overhead. Libera el dorsal para el overhead.", nivel: "Principiante", material: "Foam roller" },
+    { name: "Banded Lat Stretch", desc: "Banda anclada alta, agárrate y lleva la cadera hacia el lado opuesto. Estira el dorsal para ganar overhead.", nivel: "Principiante", material: "Banda elástica" },
+    { name: "KB Arm Bar", desc: "En suelo con KB sobre el brazo extendido, rueda hacia el lado del KB con control total. Estabilidad + movilidad.", nivel: "Avanzado", material: "Kettlebell" },
+    { name: "Banded Overhead Distraction", desc: "Banda anclada en posición overhead. La tracción descomprime la articulación en su posición de trabajo.", nivel: "Intermedio", material: "Banda elástica" },
+    { name: "KB Windmill", desc: "Con KB overhead, dobla el tronco lateral manteniendo el brazo vertical. Movilidad hombro + cadera + torácica.", nivel: "Avanzado", material: "Kettlebell" },
+    { name: "Foam Roller Pec Smash", desc: "En prono con el foam bajo el pectoral, aplica presión y mueve el brazo. Libera la restricción anterior del hombro.", nivel: "Principiante", material: "Foam roller" },
+    { name: "Banded Shoulder Internal Rotation", desc: "Banda a la altura del codo, lleva el antebrazo hacia el cuerpo. Trabaja la rotación interna déficitaria.", nivel: "Intermedio", material: "Banda elástica" },
+  ]
+};
+
+const ZONE_COLORS = {
+  cadera: '#ff9f5a', rodilla: '#5af5a0', toracica: '#5ab4f5', hombro: '#f55ab4'
+};
+const ZONE_NAMES = {
+  cadera: 'Cadera', rodilla: 'Rodilla / Tobillo', toracica: 'Torácica', hombro: 'Hombro'
+};
+
+// ═══════════════════════════════════
+// ESTADO GLOBAL
+// ═══════════════════════════════════
+let state = {
+  selectedZone: null,
+  selectedDuration: null,
+  session: { exercises: [], currentIdx: 0, startTime: null, zone: null, duration: null },
+  history: JSON.parse(localStorage.getItem('mobilityHistory') || '[]'),
+  timer: { interval: null, seconds: 0, running: false }
+};
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+function init() {
+  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const now = new Date();
+  document.getElementById('hero-date').textContent =
+    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+
+  const streak = getStreak();
+  document.getElementById('home-streak').textContent = streak > 0 ? `🔥 ${streak} días seguidos` : '';
+}
+
+function getStreak() {
+  if (!state.history.length) return 0;
+  const today = new Date().toDateString();
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 30; i++) {
+    const key = d.toDateString();
+    if (state.history.some(h => new Date(h.date).toDateString() === key)) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else if (i === 0) { break; }
+    else { break; }
+  }
+  return streak;
+}
+
+// ═══════════════════════════════════
+// NAVEGACIÓN
+// ═══════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  document.getElementById('bottom-nav').style.display = (name === 'session' || name === 'preview') ? 'none' : 'flex';
+
+  document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+  if (name === 'home') document.getElementById('nav-home').classList.add('active');
+  if (name === 'history') { document.getElementById('nav-history').classList.add('active'); renderHistory(); }
+}
+
+// ═══════════════════════════════════
+// HOME
+// ═══════════════════════════════════
+function selectZone(zone) {
+  state.selectedZone = zone;
+  document.querySelectorAll('.zone-card').forEach(c => {
+    c.style.borderColor = '';
+    c.style.background = '';
+  });
+  const card = document.querySelector(`.zone-card[data-zone="${zone}"]`);
+  card.style.borderColor = ZONE_COLORS[zone];
+  card.style.background = `rgba(${hexToRgb(ZONE_COLORS[zone])}, 0.08)`;
+  checkStartReady();
+}
+
+function selectDuration(min) {
+  state.selectedDuration = min;
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.dur-btn[data-min="${min}"]`).classList.add('active');
+  checkStartReady();
+}
+
+function checkStartReady() {
+  document.getElementById('start-btn').disabled = !(state.selectedZone && state.selectedDuration);
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+// ═══════════════════════════════════
+// SESIÓN
+// ═══════════════════════════════════
+function startSession() {
+  const zone = state.selectedZone;
+  const duration = state.selectedDuration;
+  const exPerMin = 0.8;
+  const count = Math.round(duration * exPerMin);
+  const pool = [...DB[zone]];
+  const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, Math.min(count, pool.length));
+
+  state.session = {
+    exercises: shuffled,
+    currentIdx: 0,
+    startTime: null,
+    zone, duration
+  };
+
+  renderPreview();
+  showScreen('preview');
+}
+
+function renderPreview() {
+  const { exercises, zone, duration } = state.session;
+  const color = ZONE_COLORS[zone];
+  const rgb = hexToRgb(color);
+
+  const pill = document.getElementById('preview-zone-pill');
+  pill.textContent = ZONE_NAMES[zone];
+  pill.style.background = `rgba(${rgb}, 0.15)`;
+  pill.style.color = color;
+
+  document.getElementById('preview-meta-title').textContent =
+    `${exercises.length} ejercicios · ${duration} min`;
+  document.getElementById('preview-meta-sub').textContent =
+    'Toca para leer la explicación completa';
+
+  const STEPS = {
+    "90/90 Hip Stretch": ["Siéntate en el suelo con ambas piernas en 90°", "Pierna delantera: rodilla y cadera a 90° hacia delante", "Pierna trasera: rodilla y cadera a 90° hacia el lado", "Mantén la espalda recta y el pecho erguido", "Inclínate suavemente hacia la pierna delantera", "30-60 seg por lado. Cambia y repite"],
+    "Pigeon Pose": ["Desde cuadrúpeda, lleva la rodilla derecha hacia la muñeca derecha", "El pie derecho queda cerca de la cadera izquierda", "Estira la pierna izquierda hacia atrás completamente", "Cuadra las caderas al suelo, sin rotar", "Inclínate hacia delante apoyando los antebrazos", "45-90 seg por lado"],
+    "Hip Circles Cuadrúpedo": ["Posición cuadrúpeda: manos bajo hombros, rodillas bajo caderas", "Levanta una rodilla del suelo y describe un círculo amplio", "Primero hacia fuera y arriba, luego hacia atrás y abajo", "Mantén la pelvis estable, el movimiento es solo de cadera", "8-10 círculos en cada dirección por pierna"],
+    "Deep Squat Hold": ["Pies a la anchura de los hombros o algo más abiertos", "Punta de los pies ligeramente hacia fuera (30-45°)", "Desciende hasta el fondo de la sentadilla", "Talones en el suelo, rodillas alineadas con los pies", "Manos en el pecho o sujetando algo para equilibrio", "Mantén 30-60 seg, respira con normalidad"],
+    "Frog Stretch": ["A cuatro patas, separa las rodillas todo lo que puedas", "Rodillas en línea con las caderas o más abiertas", "Lleva los pies hacia fuera alineados con las rodillas", "Baja las caderas hacia el suelo empujando suavemente", "Las plantas de los pies pueden mirar hacia arriba", "Mantén 45-90 seg, respira profundamente"],
+    "Hip Flexor Stretch en Zancada": ["Zancada baja: rodilla trasera apoyada en el suelo", "Rodilla delantera en 90° directamente sobre el tobillo", "Empuja la cadera delantera hacia adelante y abajo", "Mantén el torso erguido, no te dobles hacia adelante", "Opcionalmente, levanta el brazo del lado trasero", "30-60 seg por lado, respira hacia el estiramiento"],
+    "Rotación Interna de Cadera": ["Siéntate con piernas extendidas, luego dobla una rodilla", "Coloca el pie hacia fuera del muslo (rotación interna)", "Mantén la otra pierna extendida en el suelo", "Inclínate suavemente hacia la rodilla doblada", "Usa el peso del cuerpo, no empujes con las manos", "30-45 seg por lado"],
+    "Glute Smash con Pelota": ["Siéntate sobre la pelota colocándola bajo el glúteo", "Busca zonas de tensión moviendo el cuerpo lentamente", "Cuando encuentres un punto, mantén la presión", "Puedes cruzar la pierna para aumentar la presión", "Mueve el tobillo en círculos para trabajar el tejido", "60-90 seg por glúteo"],
+    "Active Pigeon Pulse": ["Entra en posición de Pigeon Pose (ver descripción)", "En lugar de relajarte, activa el glúteo de la pierna delantera", "Haz pequeños pulsos: baja un cm más y vuelve", "Cada pulso es una contracción activa hacia más ROM", "10-15 pulsos, luego mantén 20 seg en el límite", "2-3 series por lado"],
+    "Supine Hip Rotation": ["Túmbate boca arriba con las rodillas dobladas", "Lleva ambas rodillas hacia un lado manteniendo los hombros pegados", "Siente la rotación en la cadera y la zona lumbar", "Vuelve al centro con control y cambia de lado", "8-10 repeticiones lentas por lado"],
+    "PAILS & RAILS Cadera": ["Entra en 90/90 con banda añadiendo tracción si tienes", "Fase 1 PAILS: empuja el suelo con la rodilla delantera (20-30% fuerza)", "Aumenta gradualmente a máxima contracción en 10 seg", "Mantén la contracción máxima 10 seg más", "Fase 2 RAILS: levanta activamente la rodilla del suelo lo máximo", "Mantén la elevación 10 seg. Descansa y repite 2-3 veces"],
+    "Banded Hip Distraction": ["Ancla una banda gruesa al rack a la altura de la cadera", "Pasa la banda por la ingle (cadera a trabajar)", "Aléjate del rack para que la banda tire hacia atrás", "Adopta posición de sentadilla profunda o 90/90", "Mueve la cadera en círculos, hacia delante y atrás", "60-90 seg por cadera"],
+    "Banded Hip Flexor Stretch": ["Ancla la banda al rack a la altura de la cadera o más bajo", "Pasa la banda por el muslo de la pierna a estirar", "Da un paso atrás hasta que la banda tenga tensión", "Adopta posición de zancada baja con esa rodilla atrás", "La banda tira del muslo hacia delante, aumentando el estiramiento", "30-60 seg por lado"],
+    "Goblet Squat Excéntrico": ["Sujeta el kettlebell con ambas manos contra el pecho", "Pies a la anchura de los hombros, puntas ligeramente fuera", "Desciende muy lentamente: cuenta 4-5 seg hasta el fondo", "Deja que el KB te ayude a mantener el torso erguido", "En el fondo, empuja las rodillas hacia fuera con los codos", "Sube normalmente. 5-8 repeticiones"],
+    "Hip Opener con Disco": ["Siéntate en el suelo con las piernas abiertas en V", "Coloca el disco sobre el muslo cerca de la rodilla", "La carga ayuda a hundir la pierna hacia el suelo", "Mantén la espalda recta, no te encojas hacia delante", "Puedes inclinarte hacia uno de los lados si quieres más ROM", "45-60 seg por pierna"],
+    "Banded 90/90 con Pulso": ["Entra en posición 90/90 en el suelo", "Ancla una banda al tobillo de la pierna delantera", "La banda tira del tobillo hacia fuera, aumentando la rotación", "Realiza pulsos activos hacia más ROM cada 5 seg", "Mantén la posición con activación activa, no pasiva", "30-45 seg por lado"],
+    "Kettlebell Hip Around": ["De pie con pies a la anchura de los hombros", "Sujeta el kettlebell con ambas manos frente al cuerpo", "Describe un círculo amplio alrededor de la cadera", "El KB pasa de una mano a la otra detrás de la espalda", "Mantén el core activo y las rodillas ligeramente flexionadas", "10 círculos en cada dirección"],
+    "Sumo Squat con Disco": ["Pies muy abiertos, puntas de los pies bien hacia fuera (45°)", "Sujeta el disco con ambas manos frente al pecho", "El disco actúa como contrapeso para mantener el torso erguido", "Desciende hasta que los muslos estén paralelos o más abajo", "Empuja las rodillas hacia fuera en todo momento", "Mantén 30 seg o haz 8-10 repeticiones lentas"],
+    "Banded Hip Internal Rotation": ["Ancla la banda al rack a la altura del tobillo", "Coloca la banda en el tobillo de la pierna a trabajar", "Gira el pie hacia dentro contra la resistencia de la banda", "Mantén la rodilla estable, solo rota desde la cadera", "10-15 repeticiones controladas por pierna"],
+    "Cossack Squat con KB": ["De pie con pies muy abiertos (más del doble de los hombros)", "Sujeta el KB con ambas manos para equilibrio", "Desciende hacia un lado doblando solo esa rodilla", "La otra pierna queda completamente extendida en el suelo", "El pie de la pierna extendida puede levantar los dedos", "5-8 repeticiones lentas por lado"],
+    "Knee-to-Wall Drill": ["De pie frente a una pared, coloca el pie a 5 cm de ella", "Lleva la rodilla hacia la pared sin levantar el talón", "Si la rodilla toca la pared, aleja el pie 1 cm más", "Encuentra tu máxima distancia pie-pared con talón en suelo", "Haz 10-15 repeticiones relajadas en cada tobillo", "Cada semana intenta aumentar 0.5 cm la distancia"],
+    "Deep Squat Talones en Suelo": ["Pies algo más anchos que los hombros, puntas fuera 30°", "Desciende lentamente hasta el fondo total de la sentadilla", "Talones pegados al suelo en todo momento", "Si no puedes, usa algo bajo bajo los talones temporalmente", "Mantén el pecho erguido, manos juntas frente al pecho", "Mantén 30-60 seg. Con el tiempo elimina el apoyo de talones"],
+    "Tib Raises": ["De pie con talones apoyados en un escalón o peso", "Las puntas de los pies cuelgan en el aire", "Levanta los dedos y el antepié hacia la espinilla", "Baja lentamente volviendo a la posición inicial", "20-30 repeticiones. Aumenta la velocidad progresivamente", "También puedes hacerlo contra una pared"],
+    "Ankle Circles Activos": ["Siéntate o túmbate con una pierna extendida", "Levanta el pie del suelo y comienza los círculos", "Describe el círculo más amplio posible con el tobillo", "Ve despacio: 5 seg por círculo completo", "10 círculos en cada dirección por tobillo", "Activa toda la musculatura del tobillo en cada posición"],
+    "Lunge Ankle Stretch": ["Posición de zancada con el pie delantero cerca de la pared", "Lleva la rodilla delantera hacia la pared tocándola", "El talón debe permanecer completamente en el suelo", "Mantén 5 seg, deja ir la rodilla y repite", "15-20 repeticiones por tobillo", "Ve alejando el pie de la pared progresivamente"],
+    "Reverse Bear Crawl": ["Comienza en posición cuadrúpeda con rodillas a 5 cm del suelo", "Mueve la mano izquierda y el pie derecho simultáneamente hacia atrás", "Luego mano derecha y pie izquierdo", "Mantén las rodillas siempre cerca del suelo", "Las caderas deben permanecer bajas durante todo el movimiento", "Recorre 5-10 metros hacia atrás. Descansa y repite"],
+    "Half Kneeling Ankle Drill": ["Una rodilla en el suelo, la otra pierna delantera con pie plano", "Lleva la rodilla delantera hacia adelante y afuera", "El talón no puede levantarse del suelo en ningún momento", "Alcanza la máxima dorsiflexión posible manteniendo el talón", "10-15 repeticiones lentas por tobillo", "Puedes apoyar las manos en la rodilla para añadir presión"],
+    "Knee CARs": ["De pie con apoyo, levanta una pierna en 90°", "Describe el círculo más amplio posible con la rodilla", "Primero hacia adelante y arriba, luego hacia el lado y atrás", "Mantén la pelvis completamente estable durante el movimiento", "5 círculos lentos en cada dirección por rodilla", "El objetivo es disociar el movimiento de rodilla de la cadera"],
+    "Calf Stretch en Pared": ["Coloca las manos en la pared, un pie adelantado y otro atrás", "Para el gastrocnemio: rodilla trasera completamente extendida", "Para el sóleo: dobla ligeramente la rodilla trasera", "Empuja el talón trasero hacia el suelo", "Mantén 30-45 seg en cada posición", "Haz ambas variantes en cada tobillo"],
+    "Seated Ankle Flexion/Extension": ["Siéntate en el suelo con las piernas extendidas frente a ti", "Flexiona el tobillo hacia ti lo máximo posible (dorsiflexión)", "Mantén 2 seg en el tope del rango", "Extiende el tobillo alejando los dedos (flexión plantar)", "Mantén 2 seg. 10-15 repeticiones por tobillo", "Añade resistencia con una banda para mayor efecto"],
+    "Banded Ankle Distraction": ["Ancla una banda gruesa al rack a nivel del suelo", "Coloca el tobillo dentro de la banda (la banda rodea el tobillo)", "Aléjate del rack para que la banda tire hacia atrás del tobillo", "Realiza el knee-to-wall drill con la banda en el tobillo", "La tracción crea espacio articular mejorando el ROM", "10-15 repeticiones o mantén 60 seg por tobillo"],
+    "Banded Knee-to-Wall": ["Ancla la banda al rack a la altura del suelo", "Coloca el talón dentro de la banda para que tire hacia atrás", "Realiza el knee-to-wall normal: lleva la rodilla hacia la pared", "La banda proporciona tracción posterior durante el movimiento", "Notarás más rango disponible gracias a la descompresión articular", "10-15 repeticiones por tobillo"],
+    "Foam Roller Calf Smash": ["Siéntate en el suelo con el foam bajo los gemelos", "Cruza una pierna sobre la otra para aumentar la presión", "Mueve el cuerpo hacia adelante y atrás lentamente", "Cuando encuentres un punto de tensión, mantén 5-10 seg", "Mueve el tobillo en círculos sobre el punto de tensión", "60-90 seg por pierna"],
+    "Foam Roller Tibialis Smash": ["Arrodíllate con el foam bajo la espinilla (tibial anterior)", "Apoya el peso del cuerpo sobre el foam con control", "Muévete muy lentamente hacia abajo por la espinilla", "Evita la zona del hueso tibial, trabaja el músculo lateral", "Cuando encuentres tensión, flexiona y extiende el tobillo", "60 seg por pierna"],
+    "Plate Loaded Dorsiflexion": ["Posición de knee-to-wall estándar frente a una pared", "Coloca un disco de 10-20kg sobre el muslo delantero", "El peso aumenta la carga sobre la dorsiflexión", "Realiza 10-15 repeticiones llevando la rodilla a la pared", "El talón debe permanecer completamente pegado al suelo", "Aumenta el peso progresivamente según mejoras"],
+    "Banded Calf Stretch": ["Siéntate en el suelo con las piernas extendidas", "Pasa la banda por la parte delantera del pie", "Tira de la banda hacia ti para llevar el pie a dorsiflexión", "Mantén la rodilla extendida para trabajar el gastrocnemio", "O dobla ligeramente la rodilla para el sóleo", "30-45 seg por posición y tobillo"],
+    "Foam Roller IT Band": ["Tumbado de lado con el foam bajo la cadera", "El cuerpo forma una línea recta apoyado en el antebrazo", "Muévete lentamente desde la cadera hasta justo sobre la rodilla", "Detente en los puntos de tensión durante 10-15 seg", "No ruedes directamente sobre la articulación de la rodilla", "60-90 seg por pierna"],
+    "Kettlebell Ankle Stretch": ["Posición de knee-to-wall con el pie cerca de la pared", "Coloca el kettlebell sobre el muslo (2-4kg máximo)", "El peso del KB añade presión para profundizar la dorsiflexión", "Realiza 10-15 repeticiones llevando la rodilla hacia la pared", "El talón no puede levantarse del suelo", "Aumenta el peso gradualmente con el tiempo"],
+    "Banded Terminal Knee Extension": ["Ancla la banda al rack a la altura de la rodilla", "Coloca la banda en la parte posterior de la rodilla", "De pie con la rodilla ligeramente flexionada", "Extiende completamente la rodilla contra la resistencia", "Mantén la extensión completa 1-2 seg", "15-20 repeticiones por pierna. 2-3 series"],
+    "Foam Roller Quad Smash": ["Tumbado boca abajo con el foam bajo los cuádriceps", "Apoya el peso del cuerpo en los antebrazos", "Muévete lentamente desde la cadera hasta justo sobre la rodilla", "Cuando encuentres tensión, dobla y estira la rodilla lentamente", "También puedes mantener el punto y rotar la pierna", "60-90 seg por cuádriceps"],
+    "Cat-Cow": ["A cuatro patas: manos bajo hombros, rodillas bajo caderas", "CAT: espira y redondea toda la columna como un arco", "Empuja el suelo con las manos, lleva el mentón al pecho", "COW: inspira y hunde el abdomen, levanta la cabeza y el cóccix", "Muévete muy despacio, sintiendo cada vértebra torácica", "10-15 ciclos lentos, 5 seg por posición"],
+    "Rotación Torácica en Child's Pose": ["Siéntate en talones y estira los brazos hacia adelante (child's pose)", "Coloca una mano en la nuca con el codo apuntando al lado", "Rota ese codo hacia el techo sin mover las caderas", "Lleva el codo lo más arriba posible, siente la apertura torácica", "Mantén 2 seg arriba. 8-10 repeticiones por lado", "La posición de partida bloquea la lumbar para aislar la torácica"],
+    "Thread the Needle": ["Posición cuadrúpeda estándar con pies juntos", "Desliza el brazo derecho por debajo del cuerpo hacia la izquierda", "El hombro derecho y la mejilla tocan el suelo", "El brazo izquierdo puede estirarse hacia adelante para más ROM", "Mantén 20-30 seg, luego activa girando el codo al techo", "8 repeticiones activas + 30 seg mantenido por lado"],
+    "Thoracic Extension en Suelo": ["Tumbado boca abajo, manos entrelazadas detrás de la nuca", "Levanta el pecho del suelo usando solo los músculos de la espalda", "Mantén la vista al suelo (no extiendas el cuello)", "Sube solo hasta donde sientas trabajo en la espalda alta", "Mantén 2-3 seg en la cima. 10-12 repeticiones", "No uses los brazos para empujar, el trabajo es de la espalda"],
+    "Open Book Rotation": ["Tumbado de lado con rodillas apiladas en 90°", "Brazos extendidos juntos hacia adelante", "Lleva el brazo superior hacia el otro lado, abriendo el pecho", "El brazo sigue la rotación hasta donde llegue naturalmente", "Las rodillas deben permanecer juntas durante todo el movimiento", "Mantén 2 seg en el tope. 10 repeticiones lentas por lado"],
+    "Quadruped Thoracic Rotation": ["Posición cuadrúpeda con una mano en la nuca", "El codo apunta hacia el lado correspondiente", "Lleva ese codo hacia el suelo (entre los brazos)", "Luego rótalo hacia el techo lo máximo posible", "Solo se mueve la parte alta de la espalda, la cadera no", "8-10 repeticiones lentas por lado"],
+    "Wall Thoracic Rotation": ["De pie junto a la pared, pies paralelos pegados a ella", "Cruza los brazos sobre el pecho", "Rota la parte superior del cuerpo hacia la pared", "Los pies y las caderas permanecen fijos mirando al frente", "Mantén 2 seg en el tope de rotación", "10 repeticiones a cada lado"],
+    "Seated Thoracic Rotation": ["Siéntate en el suelo con las piernas cruzadas (postura de buda)", "Cruza los brazos sobre el pecho o manos en la nuca", "Rota solo la parte alta del torso, sin mover la pelvis", "Intenta llevar el codo hacia atrás lo máximo posible", "Mantén 1-2 seg en el tope. 10 repeticiones por lado", "Si sientes que la lumbar se mueve, trabaja más despacio"],
+    "Prone Thoracic Extension": ["Tumbado boca abajo, manos junto a los hombros", "Empuja el suelo con las manos levantando el pecho", "Lleva los codos hacia el cuerpo para activar la espalda", "El objetivo es extender la torácica, no la lumbar", "En el punto alto, mantén 3-5 seg", "8-10 repeticiones con movimiento controlado"],
+    "Standing Thoracic Rotation": ["De pie con un palo o pvc en los hombros", "Pies paralelos a la anchura de los hombros, rodillas ligeramente flexionadas", "Rota el tronco hacia un lado manteniendo las caderas al frente", "El palo debe permanecer horizontal durante la rotación", "Mantén 2 seg en el tope. 10 repeticiones por lado", "Cuanto más lento, mayor activación de los rotadores torácicos"],
+    "Foam Roller Thoracic Extension": ["Coloca el foam perpendicular a tu espalda a nivel T6-T8", "Manos entrelazadas detrás de la nuca, codos hacia adelante", "Deja que la espalda alta se extienda sobre el foam", "Mueve el foam 2-3 cm hacia arriba y repite", "Trabaja segmento a segmento desde T12 hasta T4", "En cada nivel: extiende, mantén 5 seg, sube al siguiente"],
+    "Foam Roller Thoracic Rotation": ["Coloca el foam longitudinalmente bajo la columna de abajo arriba", "La cabeza y el cóccix deben estar apoyados en el foam", "Deja caer las rodillas hacia un lado mientras el hombro opuesto permanece abajo", "Siente el estiramiento en toda la cadena lateral torácica", "Mantén 30-45 seg por lado", "Respira profundamente para aumentar el ROM"],
+    "PVC Codos en Banco": ["Arrodíllate frente a una caja o banco", "Apoya los codos sobre el banco con las manos sujetando el PVC", "Deja caer la cabeza entre los brazos hacia el suelo", "El objetivo es hundir el pecho hacia el suelo", "Mantén 20-30 seg, luego aleja ligeramente las rodillas para más ROM", "Este ejercicio trabaja simultáneamente torácica y hombros"],
+    "Band Pull-Aparts": ["Sujeta la banda con ambas manos a la anchura de los hombros", "Brazos extendidos al frente a la altura del pecho", "Lleva los brazos hacia los lados hasta que la banda toca el pecho", "Junta los omóplatos completamente en el punto final", "Vuelve lentamente al inicio (no dejes que la banda tire rápido)", "15-20 repeticiones. 2-3 series. Aumenta tensión progresivamente"],
+    "Foam Roller T-Spine Smash": ["Foam perpendicular bajo la espalda alta (nivel T6-T8)", "Manos detrás de la nuca para el peso de la cabeza", "Levanta las caderas del suelo (posición de puente)", "Muévete hacia arriba y abajo sobre el punto de tensión", "Añade: lleva los brazos overhead mientras mantienes el punto", "60-90 seg en cada nivel. Trabaja 4-5 zonas"],
+    "Banded Thoracic Distraction": ["Ancla una banda gruesa al rack a la altura de la espalda media", "Apoya un nivel torácico contra la banda", "Aléjate del rack hasta que la banda esté tensa", "Realiza extensiones y rotaciones torácicas contra la tracción", "La banda descomprime el nivel vertebral mientras te mueves", "30-45 seg por nivel vertebral"],
+    "Disco Overhead Thoracic Walk": ["Sujeta el disco de 5-10kg con ambas manos", "Lleva los brazos completamente overhead, codos extendidos", "Camina lentamente durante 20-30 metros", "Mantén las costillas bajas (no arquees la lumbar)", "Para mantener el disco arriba necesitas extensión torácica activa", "2-3 series de 20 metros"],
+    "Foam Roller Lat Stretch": ["Siéntate de lado junto al foam roller (perpendicular a ti)", "Apoya el lat (músculo entre axila y cadera) sobre el foam", "Estira el brazo overhead y lleva la cabeza hacia el suelo", "Puedes hacer pequeñas oscilaciones para encontrar los puntos tensos", "Rota ligeramente el torso para cambiar el ángulo", "60-90 seg por lado"],
+    "Banded Thoracic Extension": ["Ancla la banda al rack a la altura de la espalda media", "Gira y apoya la espalda contra la banda (la banda en la zona torácica)", "Da un paso adelante para que la banda esté tensa", "Extiende la torácica hacia atrás contra la tracción de la banda", "Añade rotaciones y elevaciones de brazos", "30-45 seg. Mueve el punto de apoyo para trabajar diferentes niveles"],
+    "Foam Roller Side Bend": ["Coloca el foam longitudinalmente bajo la columna", "Cae hacia un lado, dejando que la cadera baje hacia el suelo", "El brazo del mismo lado puede estirarse overhead para aumentar el estiramiento", "Siente el estiramiento en el cuadrado lumbar y la cadena lateral", "Mantén 30-45 seg por lado", "Respira hacia el lado estirado para aumentar el ROM"],
+    "Sleeper Stretch": ["Tumbado de lado sobre el hombro a trabajar", "El brazo inferior en 90° con el codo al frente", "Con la otra mano, empuja el antebrazo hacia abajo hacia el suelo", "El objetivo es que la palma quede mirando al suelo", "Mantén la presión suave y constante durante 30-45 seg", "Si sientes presión en la parte delantera del hombro, reduce el rango"],
+    "Shoulder CARs": ["De pie o sentado con la columna completamente recta", "Lleva el brazo hacia adelante y comienza el círculo", "Sube hacia el techo, luego hacia atrás en rotación externa máxima", "Baja hacia atrás y hacia abajo en rotación interna máxima", "El círculo debe ser lo más grande posible en cada punto", "5 círculos muy lentos en cada dirección por hombro"],
+    "Wall Shoulder Flexion Stretch": ["De pie frente a la pared a un brazo de distancia", "Sube el brazo hasta el límite de la flexión", "Deja que la pared guíe el brazo un poco más arriba", "Mantén el cuerpo completamente recto, no arquees la espalda", "Mantén 30-45 seg. El límite debe ser suave, no doloroso", "Puedes hacer pequeños movimientos oscilatorios para más efecto"],
+    "Doorway Chest Stretch": ["Coloca el brazo en el marco de la puerta en L (90°)", "El codo a la altura del hombro o ligeramente más bajo", "Da un paso adelante rotando el cuerpo hacia el lado opuesto", "Siente el estiramiento en el pectoral y la cápsula anterior del hombro", "Mantén 30-45 seg. Prueba diferentes alturas del codo", "Haz también la variante con el brazo más alto para el pec menor"],
+    "Cross-Body Shoulder Stretch": ["Lleva el brazo a trabajar cruzado hacia el hombro opuesto", "Con la otra mano sujeta el codo y empuja hacia el pecho", "Mantén el hombro bajado (no lo encogeas)", "Siente el estiramiento en la parte posterior del hombro", "Mantén 30-45 seg por hombro", "Inclina ligeramente la cabeza hacia el lado opuesto para más efecto"],
+    "Prone Y-T-W": ["Tumbado boca abajo con los brazos a los lados", "Y: lleva los brazos a 45° sobre la cabeza como la letra Y. Levanta y baja", "T: brazos en 90° respecto al cuerpo como la letra T. Levanta y baja", "W: codos doblados a 90° y levanta como si formaras una W", "Mantén cada posición 2-3 seg en la cima", "8-10 repeticiones en cada posición. Puede añadirse pequeño peso"],
+    "Wall Slides": ["De pie con la espalda completamente pegada a la pared", "Brazos en 90° pegados a la pared (codos y muñecas contacto)", "Desliza los brazos hacia arriba manteniendo todo el contacto con la pared", "Si pierdes el contacto en algún punto, ese es tu límite actual", "Baja controladamente. 10-12 repeticiones", "Con el tiempo podrás llegar más arriba sin perder el contacto"],
+    "Shoulder External Rotation Suelo": ["Tumbado boca abajo con el brazo en 90° hacia el lado", "El codo doblado a 90°, el antebrazo colgando hacia el suelo", "Levanta el antebrazo hacia el techo rotando externamente", "Mantén el codo pegado al suelo durante todo el movimiento", "Mantén 2 seg en el tope. 12-15 repeticiones por hombro", "Puedes añadir pequeño peso en la mano progresivamente"],
+    "Bear Hug Stretch": ["De pie, abraza tus propios hombros cruzando los brazos", "Los codos deben quedar lo más adelante posible", "Siente el estiramiento entre los omóplatos (romboides)", "También puedes alternar abriendo los brazos y cerrándolos", "Mantén la posición cerrada 20-30 seg", "Útil como calentamiento y como movilidad post-entreno"],
+    "Active Hang": ["Cuelga de una barra con agarre prono (palmas al frente)", "Posición 1 pasiva: deja que los hombros suban hacia las orejas", "Mantén 5 seg sintiendo la descompresión de la articulación", "Posición 2 activa: empuja los hombros hacia abajo activamente (depresión escapular)", "Alterna entre ambas posiciones 5 veces", "Intenta llegar a 30-60 seg de colgado total"],
+    "Banded Shoulder Distraction": ["Ancla una banda al rack a la altura del hombro", "Coloca el brazo dentro de la banda (la banda en la axila)", "Aléjate del rack para que la banda tire hacia el rack", "Lleva el brazo hacia diferentes posiciones: arriba, al lado, atrás", "En cada posición, realiza pequeños movimientos para trabajar el tejido", "60-90 seg por hombro explorando diferentes ángulos"],
+    "PVC Pass-Through": ["Agarra el PVC o banda con un agarre muy amplio", "Brazos completamente extendidos al frente a la altura de la cadera", "Lleva el PVC por encima de la cabeza hasta detrás de la espalda", "Los codos deben permanecer extendidos en todo momento", "Vuelve al frente por el mismo camino", "10-15 repeticiones. Ve cerrando el agarre progresivamente"],
+    "Banded External Rotation": ["Ancla la banda al rack a la altura del codo", "De pie de lado al rack, codo doblado a 90° pegado al cuerpo", "Tira de la banda hacia fuera rotando el antebrazo externamente", "El codo permanece pegado al cuerpo en todo momento", "15-20 repeticiones con movimiento lento y controlado", "Mantén 2 seg en el tope de rotación"],
+    "Lat Stretch con Foam Roller": ["Siéntate de lado con el foam perpendicular a ti", "Apoya el lat (costado entre axila y cadera) sobre el foam", "Estira el brazo completamente overhead", "Inclina el cuerpo hacia el suelo dejando que el lat se estire", "Respira profundamente hacia el lado que estás estirando", "60-90 seg por lado con movimientos pequeños para explorar"],
+    "Banded Lat Stretch": ["Ancla una banda gruesa al rack en un punto alto", "Agarra la banda con una mano y da un paso atrás", "Lleva la cadera hacia el lado opuesto alejándote del rack", "El brazo queda extendido y el lat se estira progresivamente", "Prueba diferentes alturas del punto de anclaje para diferentes ángulos", "30-45 seg por lado"],
+    "KB Arm Bar": ["Tumbado boca arriba con el KB en la mano derecha (brazo extendido vertical)", "La rodilla derecha doblada, pie en el suelo", "Rueda lentamente hacia la izquierda mirando el KB en todo momento", "Termina en decúbito lateral con el KB vertical y el brazo extendido", "Mantén 30-45 seg. El hombro trabaja en estabilización activa", "Vuelve lentamente al inicio. 3-5 repeticiones por lado"],
+    "Banded Overhead Distraction": ["Ancla la banda al rack en un punto alto", "Agarra la banda y lleva el brazo completamente overhead", "Aléjate del rack para que la banda tire desde arriba y al lado", "En esta posición overhead, realiza movimientos pequeños del hombro", "La tracción descomprime la articulación en su posición de trabajo real", "60 seg por hombro explorando diferentes ángulos overhead"],
+    "KB Windmill": ["De pie con el KB en una mano elevado overhead, brazo extendido", "Los pies a 45° respecto al brazo elevado", "Mira el KB en todo momento durante el movimiento", "Inclina el torso hacia el lado opuesto al KB bajando la otra mano por la pierna", "El KB debe permanecer vertical y el brazo completamente extendido", "5-8 repeticiones lentas por lado"],
+    "Foam Roller Pec Smash": ["Tumbado boca abajo con el foam bajo el pectoral", "El brazo a trabajar extendido a 90° respecto al cuerpo", "Mueve el cuerpo lateralmente para rodar sobre el pectoral", "Cuando encuentres tensión, detente y mueve el brazo hacia arriba y abajo", "Explora entre el esternón y la axila", "60-90 seg por pectoral"],
+    "Banded Shoulder Internal Rotation": ["Ancla la banda al rack a la altura del codo", "De pie de lado al rack, codo a 90° ligeramente separado del cuerpo", "Tira de la banda hacia el cuerpo rotando internamente el antebrazo", "El movimiento es opuesto al de la rotación externa", "15-20 repeticiones controladas por hombro", "Trabaja siempre dentro de un rango indoloro"]
+  };
+
+  const list = document.getElementById('preview-list');
+  list.innerHTML = exercises.map((ex, i) => {
+    const materialTag = ex.material === 'Sin material'
+      ? `<span class="tag tag-sin-material">Sin material</span>`
+      : `<span class="tag tag-material">📦 ${ex.material}</span>`;
+    const nivelClass = `tag-nivel-${ex.nivel.toLowerCase()}`;
+    const steps = STEPS[ex.name] || [];
+    const stepsHtml = steps.length
+      ? `<div class="preview-item-steps">${steps.map(s => `• ${s}`).join('<br>')}</div>`
+      : '';
+    return `
+      <div class="preview-item slide-up" style="animation-delay:${i * 0.04}s">
+        <div class="preview-num" style="background:rgba(${hexToRgb(color)},0.15);color:${color};border-color:rgba(${hexToRgb(color)},0.3)">${i + 1}</div>
+        <div class="preview-item-info">
+          <div class="preview-item-name">${ex.name}</div>
+          <div class="preview-item-desc">${ex.desc}</div>
+          ${stepsHtml}
+          <div class="preview-item-tags">
+            <span class="tag ${nivelClass}">${ex.nivel}</span>
+            ${materialTag}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function launchSession() {
+  const { zone, duration } = state.session;
+  state.session.startTime = Date.now();
+  state.session.currentIdx = 0;
+
+  const badge = document.getElementById('session-badge');
+  badge.textContent = ZONE_NAMES[zone];
+  badge.style.background = `rgba(${hexToRgb(ZONE_COLORS[zone])}, 0.15)`;
+  badge.style.color = ZONE_COLORS[zone];
+  document.getElementById('session-time-left').textContent = `${duration} min`;
+
+  renderCurrentExercise();
+  showScreen('session');
+}
+
+function renderCurrentExercise() {
+  const { exercises, currentIdx } = state.session;
+  const ex = exercises[currentIdx];
+  const total = exercises.length;
+  const pct = (currentIdx / total) * 100;
+
+  document.getElementById('progress-fill').style.width = `${pct}%`;
+
+  const isLast = currentIdx === total - 1;
+  document.getElementById('next-btn').textContent = isLast ? 'Finalizar ✓' : 'Siguiente →';
+
+  // Tiempo estimado
+  const minsLeft = state.session.duration - Math.round((Date.now() - state.session.startTime) / 60000);
+  document.getElementById('session-time-left').textContent = `~${Math.max(1, minsLeft)} min`;
+
+  const materialTag = ex.material === 'Sin material'
+    ? `<span class="tag tag-sin-material">Sin material</span>`
+    : `<span class="tag tag-material">📦 ${ex.material}</span>`;
+
+  const nivelClass = `tag-nivel-${ex.nivel.toLowerCase()}`;
+
+  const content = document.getElementById('session-content');
+  content.innerHTML = `
+    <div class="ex-counter">${currentIdx + 1} de ${total}</div>
+    <div class="ex-card current slide-up">
+      <div class="video-placeholder">
+        <div class="vp-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <p>Vídeo próximamente</p>
+        <small>Espacio reservado para YouTube</small>
+      </div>
+      <div class="ex-name">${ex.name}</div>
+      <div class="ex-desc">${ex.desc}</div>
+      <div class="ex-tags">
+        <span class="tag ${nivelClass}">${ex.nivel}</span>
+        ${materialTag}
+      </div>
+      <div class="timer-block">
+        <div class="timer-presets">
+          <button class="preset-btn" onclick="setTimer(60)">1 min</button>
+          <button class="preset-btn active" onclick="setTimer(90)">90 seg</button>
+          <button class="preset-btn" onclick="setTimer(120)">2 min</button>
+        </div>
+        <div class="timer-display" id="timer-display">1:30</div>
+        <div class="timer-controls">
+          <button class="timer-btn primary" id="timer-start-btn" onclick="toggleTimer()">▶ Iniciar</button>
+          <button class="timer-btn secondary" onclick="resetTimer()">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Init timer
+  stopTimer();
+  state.timer.seconds = 90;
+  state.timer.running = false;
+}
+
+// ── TIMER ──
+function setTimer(secs) {
+  stopTimer();
+  state.timer.seconds = secs;
+  state.timer.running = false;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  updateTimerDisplay();
+  const btn = document.getElementById('timer-start-btn');
+  if (btn) btn.textContent = '▶ Iniciar';
+  const disp = document.getElementById('timer-display');
+  if (disp) disp.className = 'timer-display';
+}
+
+function toggleTimer() {
+  if (state.timer.running) {
+    stopTimer();
+    document.getElementById('timer-start-btn').textContent = '▶ Reanudar';
+  } else {
+    startTimer();
+    document.getElementById('timer-start-btn').textContent = '⏸ Pausar';
+  }
+}
+
+function startTimer() {
+  state.timer.running = true;
+  document.getElementById('timer-display').className = 'timer-display running';
+  state.timer.interval = setInterval(() => {
+    state.timer.seconds--;
+    updateTimerDisplay();
+    if (state.timer.seconds <= 0) {
+      stopTimer();
+      document.getElementById('timer-display').textContent = '¡Listo!';
+      document.getElementById('timer-display').className = 'timer-display done';
+      document.getElementById('timer-start-btn').textContent = '▶ Iniciar';
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(state.timer.interval);
+  state.timer.running = false;
+}
+
+function resetTimer() {
+  stopTimer();
+  state.timer.seconds = 90;
+  updateTimerDisplay();
+  document.getElementById('timer-display').className = 'timer-display';
+  const btn = document.getElementById('timer-start-btn');
+  if (btn) btn.textContent = '▶ Iniciar';
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(state.timer.seconds / 60);
+  const s = state.timer.seconds % 60;
+  const el = document.getElementById('timer-display');
+  if (el) el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+function nextExercise() {
+  stopTimer();
+  const { exercises, currentIdx } = state.session;
+  if (currentIdx >= exercises.length - 1) {
+    completeSession();
+  } else {
+    state.session.currentIdx++;
+    renderCurrentExercise();
+  }
+}
+
+function skipExercise() {
+  stopTimer();
+  const { exercises, currentIdx } = state.session;
+  if (currentIdx >= exercises.length - 1) {
+    completeSession();
+  } else {
+    state.session.currentIdx++;
+    renderCurrentExercise();
+  }
+}
+
+function confirmExit() {
+  if (confirm('¿Salir de la sesión? El progreso no se guardará.')) {
+    stopTimer();
+    showScreen('home');
+  }
+}
+
+// ═══════════════════════════════════
+// COMPLETAR SESIÓN
+// ═══════════════════════════════════
+function completeSession() {
+  stopTimer();
+  const { zone, duration, exercises, startTime } = state.session;
+  const realMin = Math.round((Date.now() - startTime) / 60000);
+
+  const record = {
+    date: new Date().toISOString(),
+    zone, duration,
+    exercises: exercises.length,
+    realMin
+  };
+  state.history.unshift(record);
+  localStorage.setItem('mobilityHistory', JSON.stringify(state.history.slice(0, 100)));
+
+  document.getElementById('complete-sub').textContent =
+    `${ZONE_NAMES[zone]} · ${duration} min programados`;
+  document.getElementById('stat-ejercicios').textContent = exercises.length;
+  document.getElementById('stat-tiempo').textContent = realMin || duration;
+  document.getElementById('stat-racha').textContent = getStreak();
+
+  showScreen('complete');
+  document.getElementById('bottom-nav').style.display = 'flex';
+}
+
+// ═══════════════════════════════════
+// HISTORIAL
+// ═══════════════════════════════════
+function renderHistory() {
+  const el = document.getElementById('history-content');
+  if (!state.history.length) {
+    el.innerHTML = `<div class="history-empty"><span class="emoji">📋</span>Aún no hay sesiones registradas.<br>Completa tu primera sesión y aparecerá aquí.</div>`;
+    return;
+  }
+
+  const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  el.innerHTML = `<div class="section-label" style="margin-bottom:16px">${state.history.length} sesiones completadas</div>` +
+    state.history.map(h => {
+      const d = new Date(h.date);
+      const dateStr = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} · ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
+      return `
+        <div class="history-item">
+          <div class="hist-dot" style="background:${ZONE_COLORS[h.zone]}"></div>
+          <div class="hist-info">
+            <div class="hist-date">${dateStr}</div>
+            <div class="hist-zone">${ZONE_NAMES[h.zone]}</div>
+            <div class="hist-detail">${h.exercises} ejercicios</div>
+          </div>
+          <div class="hist-dur">${h.realMin || h.duration}'</div>
+        </div>`;
+    }).join('');
+}
+
+init();
+</script>
+</body>
+</html>
