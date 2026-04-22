@@ -27,6 +27,7 @@
       --badminton: #f59e0b;
       --handball: #ef4444;
       --pickleball: #38bdf8;
+      --padel: #a78bfa;
       --font-display: 'Bebas Neue', sans-serif;
       --font-body: 'DM Sans', sans-serif;
       --safe-top: env(safe-area-inset-top, 0px);
@@ -123,6 +124,7 @@
     .sport-card[data-sport="badminton"]::before { background: var(--badminton); }
     .sport-card[data-sport="handball"]::before { background: var(--handball); }
     .sport-card[data-sport="pickleball"]::before { background: var(--pickleball); }
+    .sport-card[data-sport="padel"]::before { background: var(--padel); }
     .sport-card .sport-icon { font-size: 32px; margin-bottom: 8px; }
     .sport-card .sport-name {
       font-family: var(--font-display); font-size: 20px; letter-spacing: 1px;
@@ -463,6 +465,12 @@
         <div class="sport-meta" id="meta-pickleball">Sin ligas</div>
         <div class="sport-badge" id="badge-pickleball">0</div>
       </div>
+      <div class="sport-card" data-sport="padel" onclick="openSport('padel')">
+        <div class="sport-icon">🎾</div>
+        <div class="sport-name">PÁDEL</div>
+        <div class="sport-meta" id="meta-padel">Sin ligas</div>
+        <div class="sport-badge" id="badge-padel">0</div>
+      </div>
     </div>
     <div class="section-title">TODAS LAS LIGAS</div>
     <div id="all-ligas-list"></div>
@@ -522,6 +530,7 @@
         <option value="badminton">🏸 Bádminton</option>
         <option value="handball">🤾 Balonmano</option>
         <option value="pickleball">🏓 Pickleball</option>
+        <option value="padel">🎾 Pádel</option>
       </select>
     </div>
     <div class="form-group">
@@ -598,6 +607,7 @@ const SPORTS = {
   badminton:  { name: 'Bádminton',  icon: '🏸', color: 'var(--badminton)' },
   handball:   { name: 'Balonmano',  icon: '🤾', color: 'var(--handball)' },
   pickleball: { name: 'Pickleball', icon: '🏓', color: 'var(--pickleball)' },
+  padel:      { name: 'Pádel',      icon: '🎾', color: 'var(--padel)' },
 };
 let data = loadData();
 let currentView = 'home';
