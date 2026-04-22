@@ -1,4 +1,4 @@
-const CACHE = 'ligas-ies-v2';
+const CACHE = 'ligas-ies-v3';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {

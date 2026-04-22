@@ -10,6 +10,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <title>Ligas Escolares IES</title>
+  <script src="config.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -620,11 +621,87 @@ let scoreA = 0, scoreB = 0;
 const viewStack = [];
 
 // ─── STORAGE ──────────────────────────────────────────────────────────────────
+const GITHUB_TOKEN = window.GH_TOKEN || '';
+const GITHUB_REPO  = 'charcofernandezdavid-dotcom/mobility-app';
+const GITHUB_FILE  = 'ligas-escolares/data/ligas-data.json';
+const GITHUB_API   = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
+
 function loadData() {
   try { return JSON.parse(localStorage.getItem('ligas_ies') || '{"ligas":[]}'); }
   catch { return { ligas: [] }; }
 }
-function saveData() { localStorage.setItem('ligas_ies', JSON.stringify(data)); }
+
+function saveData() {
+  localStorage.setItem('ligas_ies', JSON.stringify(data));
+  syncToGitHub();
+}
+
+let syncTimeout = null;
+function syncToGitHub() {
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(async () => {
+    try {
+      showSyncIndicator(true);
+      let sha = null;
+      try {
+        const res = await fetch(GITHUB_API, {
+          headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (res.ok) { const d = await res.json(); sha = d.sha; }
+      } catch {}
+      const body = { message: 'Sync ligas data', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))) };
+      if (sha) body.sha = sha;
+      const pushRes = await fetch(GITHUB_API, {
+        method: 'PUT',
+        headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
+        body: JSON.stringify(body)
+      });
+      showSyncIndicator(false, pushRes.ok);
+    } catch (e) {
+      showSyncIndicator(false, false);
+    }
+  }, 1500);
+}
+
+async function loadFromGitHub() {
+  try {
+    const res = await fetch(GITHUB_API + '?t=' + Date.now(), {
+      headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) return false;
+    const d = await res.json();
+    const content = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,'')))));
+    const local = loadData();
+    if (content.ligas && content.ligas.length >= local.ligas.length) {
+      data = content;
+      localStorage.setItem('ligas_ies', JSON.stringify(data));
+      return true;
+    }
+    return false;
+  } catch { return false; }
+}
+
+function showSyncIndicator(syncing, success) {
+  let el = document.getElementById('sync-indicator');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sync-indicator';
+    el.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:16px;z-index:200;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;transition:opacity .3s;font-family:var(--font-body);letter-spacing:0.5px;';
+    document.body.appendChild(el);
+  }
+  if (syncing) {
+    el.textContent = '\u2191 Guardando...';
+    el.style.background = '#1a1f2e';
+    el.style.color = 'var(--muted)';
+    el.style.opacity = '1';
+  } else {
+    el.textContent = success ? '\u2713 Guardado' : '\u26a0 Sin sync';
+    el.style.background = success ? '#0f2a1a' : '#2a1500';
+    el.style.color = success ? 'var(--success)' : 'var(--accent)';
+    el.style.opacity = '1';
+    setTimeout(() => { el.style.opacity = '0'; }, 2500);
+  }
+}
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function navTo(section) {
@@ -1189,7 +1266,12 @@ function showToast(msg, error = false) {
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
+// Cargar desde localStorage primero (instantáneo), luego sincronizar con GitHub
 renderHome();
+(async () => {
+  const updated = await loadFromGitHub();
+  if (updated) { renderHome(); showToast('Datos sincronizados ✓'); }
+})();
 </script>
 
 <!-- PWA SERVICE WORKER REGISTER -->
