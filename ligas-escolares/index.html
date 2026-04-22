@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Ligas IES" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>Ligas Escolares IES</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --card: #1a2235;
+      --border: #1f2d45;
+      --accent: #f0b429;
+      --accent2: #38bdf8;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --text: #f0f4ff;
+      --muted: #6b7fa3;
+      --football: #22c55e;
+      --badminton: #f59e0b;
+      --handball: #ef4444;
+      --pickleball: #38bdf8;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overscroll-behavior: none;
+    }
+
+    /* ── NAV ── */
+    #app-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: calc(var(--safe-top) + 12px) 20px 12px;
+      background: linear-gradient(180deg, #0a0e1a 60%, transparent);
+      display: flex; align-items: center; gap: 12px;
+    }
+    #back-btn {
+      display: none; background: var(--card); border: 1px solid var(--border);
+      color: var(--text); width: 36px; height: 36px; border-radius: 10px;
+      font-size: 18px; cursor: pointer; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    #back-btn.visible { display: flex; }
+    #app-title {
+      font-family: var(--font-display); font-size: 24px;
+      letter-spacing: 1px; color: var(--text); flex: 1;
+    }
+    #app-title span { color: var(--accent); }
+
+    /* ── MAIN ── */
+    #main {
+      padding-top: calc(var(--safe-top) + 70px);
+      padding-bottom: calc(var(--safe-bottom) + 80px);
+      padding-left: 16px; padding-right: 16px;
+      max-width: 600px; margin: 0 auto;
+    }
+
+    /* ── BOTTOM NAV ── */
+    #bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      padding: 10px 20px calc(var(--safe-bottom) + 10px);
+      background: rgba(10,14,26,0.92);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-around;
+    }
+    .nav-btn {
+      background: none; border: none; color: var(--muted);
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-family: var(--font-body); font-size: 10px; font-weight: 500;
+      cursor: pointer; transition: color .2s; padding: 4px 12px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .nav-btn .icon { font-size: 22px; }
+    .nav-btn.active { color: var(--accent); }
+
+    /* ── VIEWS ── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── HOME ── */
+    .hero {
+      margin-bottom: 28px;
+    }
+    .hero h2 {
+      font-family: var(--font-display); font-size: 42px;
+      line-height: 1; color: var(--text); margin-bottom: 6px;
+    }
+    .hero h2 span { color: var(--accent); }
+    .hero p { color: var(--muted); font-size: 14px; }
+
+    .sport-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin-bottom: 28px;
+    }
+    .sport-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 16px;
+      cursor: pointer; transition: transform .15s, border-color .2s;
+      position: relative; overflow: hidden;
+    }
+    .sport-card:active { transform: scale(0.97); }
+    .sport-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .sport-card[data-sport="football"]::before { background: var(--football); }
+    .sport-card[data-sport="badminton"]::before { background: var(--badminton); }
+    .sport-card[data-sport="handball"]::before { background: var(--handball); }
+    .sport-card[data-sport="pickleball"]::before { background: var(--pickleball); }
+    .sport-card .sport-icon { font-size: 32px; margin-bottom: 8px; }
+    .sport-card .sport-name {
+      font-family: var(--font-display); font-size: 20px; letter-spacing: 1px;
+    }
+    .sport-card .sport-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .sport-card .sport-badge {
+      position: absolute; top: 14px; right: 12px;
+      font-size: 11px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; background: var(--border); color: var(--muted);
+    }
+    .sport-card .sport-badge.has-leagues { background: #162030; color: var(--accent); }
+
+    .section-title {
+      font-family: var(--font-display); font-size: 22px;
+      letter-spacing: 1px; margin-bottom: 14px; color: var(--muted);
+    }
+
+    /* ── LIGA LIST ── */
+    .liga-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px; margin-bottom: 10px;
+      cursor: pointer; transition: border-color .2s;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .liga-item:active { border-color: var(--accent); }
+    .liga-item .liga-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .liga-item .liga-info { flex: 1; }
+    .liga-item .liga-name { font-weight: 600; font-size: 15px; }
+    .liga-item .liga-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .liga-item .liga-arrow { color: var(--muted); font-size: 18px; }
+    .liga-status {
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .liga-status.activa { background: #0f2a1a; color: var(--success); }
+    .liga-status.finalizada { background: #1a1a2a; color: var(--muted); }
+    .liga-status.pendiente { background: #2a1f0a; color: var(--accent); }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed; bottom: calc(var(--safe-bottom) + 72px); right: 20px;
+      width: 52px; height: 52px; border-radius: 16px;
+      background: var(--accent); color: #000; border: none;
+      font-size: 26px; cursor: pointer; z-index: 99;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(240,180,41,0.4);
+      transition: transform .15s;
+    }
+    .fab:active { transform: scale(0.93); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-sheet {
+      background: var(--surface); border-radius: 24px 24px 0 0;
+      width: 100%; max-width: 600px;
+      padding: 20px 20px calc(var(--safe-bottom) + 24px);
+      transform: translateY(100%); transition: transform .3s cubic-bezier(.4,0,.2,1);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-overlay.open .modal-sheet { transform: translateY(0); }
+    .modal-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: var(--border); margin: 0 auto 20px;
+    }
+    .modal-title {
+      font-family: var(--font-display); font-size: 26px;
+      letter-spacing: 1px; margin-bottom: 20px;
+    }
+
+    /* ── FORMS ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; display: block; }
+    .form-input {
+      width: 100%; background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px; color: var(--text);
+      font-family: var(--font-body); font-size: 15px;
+      outline: none; transition: border-color .2s;
+      -webkit-appearance: none; appearance: none;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    select.form-input { cursor: pointer; }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+    .btn {
+      flex: 1; padding: 14px; border-radius: 14px; border: none;
+      font-family: var(--font-body); font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: transform .15s, opacity .2s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-secondary { background: var(--card); border: 1px solid var(--border); color: var(--text); }
+    .btn-danger { background: var(--danger); color: #fff; }
+
+    /* ── LIGA DETAIL ── */
+    .liga-header {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    }
+    .liga-header .lh-sport {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 4px;
+    }
+    .liga-header .lh-name {
+      font-family: var(--font-display); font-size: 30px; letter-spacing: 1px;
+    }
+    .liga-header .lh-meta {
+      font-size: 13px; color: var(--muted); margin-top: 6px;
+    }
+
+    /* tabs */
+    .tabs {
+      display: flex; gap: 6px; margin-bottom: 18px;
+      background: var(--card); border-radius: 12px; padding: 4px;
+      border: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1; padding: 9px 4px; border-radius: 9px; border: none;
+      background: none; color: var(--muted);
+      font-family: var(--font-body); font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all .2s; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .tab.active { background: var(--bg); color: var(--text); }
+
+    /* clasificacion */
+    .tabla-header {
+      display: grid; gap: 4px; padding: 8px 12px;
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .tabla-row {
+      display: grid; gap: 4px; padding: 12px;
+      background: var(--card); border-radius: 12px; margin-bottom: 6px;
+      border: 1px solid var(--border); align-items: center;
+    }
+    .tabla-row.liga-cols, .tabla-header.liga-cols {
+      grid-template-columns: 24px 1fr 28px 28px 28px 28px 36px;
+    }
+    .tabla-row.elim-cols, .tabla-header.elim-cols {
+      grid-template-columns: 24px 1fr 28px 28px 28px;
+    }
+    .tabla-pos { font-weight: 700; font-size: 13px; color: var(--muted); }
+    .tabla-team { font-weight: 600; font-size: 14px; }
+    .tabla-num { text-align: center; font-size: 13px; color: var(--muted); }
+    .tabla-pts { text-align: center; font-weight: 700; font-size: 14px; color: var(--accent); }
+    .tabla-row.top1 { border-color: var(--accent); }
+    .tabla-row.top2 { border-color: #334; }
+
+    /* partidos */
+    .partido-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 8px;
+      cursor: pointer; transition: border-color .2s;
+    }
+    .partido-card:active { border-color: var(--accent2); }
+    .partido-card.jugado { border-color: var(--border); }
+    .partido-fecha { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .partido-teams {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .partido-team { flex: 1; font-weight: 600; font-size: 14px; }
+    .partido-team.away { text-align: right; }
+    .partido-score {
+      background: var(--bg); border-radius: 8px; padding: 6px 12px;
+      font-family: var(--font-display); font-size: 22px; letter-spacing: 2px;
+      color: var(--text); white-space: nowrap; min-width: 72px; text-align: center;
+    }
+    .partido-score.pending { color: var(--muted); font-size: 16px; }
+    .partido-badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+      display: inline-block; margin-top: 8px;
+    }
+    .partido-badge.jugado { background: #0f2a1a; color: var(--success); }
+    .partido-badge.pendiente { background: #2a1f0a; color: var(--accent); }
+
+    /* score modal */
+    .score-inputs {
+      display: flex; align-items: center; gap: 16px; margin: 20px 0;
+    }
+    .score-team { flex: 1; }
+    .score-team-name { font-size: 12px; font-weight: 600; color: var(--muted); text-align: center; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .score-input-wrap {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .score-stepper {
+      width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--card); color: var(--text); font-size: 20px;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .score-stepper:active { background: var(--border); }
+    .score-val {
+      flex: 1; text-align: center; font-family: var(--font-display); font-size: 40px;
+      color: var(--text); background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 8px 0;
+    }
+    .score-vs { font-family: var(--font-display); font-size: 22px; color: var(--muted); }
+
+    /* bracket */
+    .bracket-round { margin-bottom: 24px; }
+    .bracket-round-title {
+      font-family: var(--font-display); font-size: 18px; letter-spacing: 1px;
+      color: var(--muted); margin-bottom: 12px; text-transform: uppercase;
+    }
+    .bracket-match {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; margin-bottom: 8px; cursor: pointer;
+    }
+    .bracket-match:active { border-color: var(--accent2); }
+    .bracket-team {
+      padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
+      font-size: 14px; font-weight: 600; transition: background .2s;
+    }
+    .bracket-team + .bracket-team { border-top: 1px solid var(--border); }
+    .bracket-team.winner { background: #0f2a1a; color: var(--success); }
+    .bracket-score-val {
+      font-family: var(--font-display); font-size: 20px; color: var(--accent);
+    }
+
+    /* equipos */
+    .equipo-row {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .equipo-avatar {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .equipo-name { font-weight: 600; font-size: 15px; flex: 1; }
+    .equipo-sub { font-size: 12px; color: var(--muted); }
+    .equipo-del {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .equipo-del:active { border-color: var(--danger); color: var(--danger); }
+
+    /* empty state */
+    .empty-state {
+      text-align: center; padding: 48px 20px; color: var(--muted);
+    }
+    .empty-state .es-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; line-height: 1.6; }
+
+    /* toast */
+    #toast {
+      position: fixed; top: calc(var(--safe-top) + 70px); left: 50%; transform: translateX(-50%) translateY(-100px);
+      background: var(--success); color: #fff; padding: 10px 20px; border-radius: 20px;
+      font-size: 14px; font-weight: 600; z-index: 300; transition: transform .3s;
+      pointer-events: none; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.error { background: var(--danger); }
+
+    /* chips */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip {
+      padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+      background: var(--card); color: var(--muted); font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all .15s;
+    }
+    .chip.selected { border-color: var(--accent); color: var(--accent); background: #1a1500; }
+
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+      text-align: center;
+    }
+    .stat-num { font-family: var(--font-display); font-size: 36px; color: var(--accent); }
+    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .add-team-inline {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .add-team-inline .form-input { flex: 1; }
+    .add-team-inline .btn { flex: 0 0 auto; width: auto; padding: 12px 16px; }
+
+    .generate-btn {
+      width: 100%; padding: 16px; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, var(--accent), #f97316);
+      color: #000; font-family: var(--font-body); font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 8px; transition: opacity .2s;
+    }
+    .generate-btn:active { opacity: 0.85; }
+
+    .warning-box {
+      background: #1a1500; border: 1px solid #3a2f0a; border-radius: 12px;
+      padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: #c99b30;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app-header">
+  <button id="back-btn" onclick="goBack()">←</button>
+  <div id="app-title">LIGAS <span>IES</span></div>
+</div>
+
+<div id="main">
+  <!-- VIEW: HOME -->
+  <div id="view-home" class="view active">
+    <div class="hero">
+      <h2>GESTIÓN DE<br><span>LIGAS</span> ESCOLARES</h2>
+      <p>IES La Roda · Educación Física</p>
+    </div>
+    <div class="sport-grid">
+      <div class="sport-card" data-sport="football" onclick="openSport('football')">
+        <div class="sport-icon">⚽</div>
+        <div class="sport-name">FÚTBOL</div>
+        <div class="sport-meta" id="meta-football">Sin ligas</div>
+        <div class="sport-badge" id="badge-football">0</div>
+      </div>
+      <div class="sport-card" data-sport="badminton" onclick="openSport('badminton')">
+        <div class="sport-icon">🏸</div>
+        <div class="sport-name">BÁDMINTON</div>
+        <div class="sport-meta" id="meta-badminton">Sin ligas</div>
+        <div class="sport-badge" id="badge-badminton">0</div>
+      </div>
+      <div class="sport-card" data-sport="handball" onclick="openSport('handball')">
+        <div class="sport-icon">🤾</div>
+        <div class="sport-name">BALONMANO</div>
+        <div class="sport-meta" id="meta-handball">Sin ligas</div>
+        <div class="sport-badge" id="badge-handball">0</div>
+      </div>
+      <div class="sport-card" data-sport="pickleball" onclick="openSport('pickleball')">
+        <div class="sport-icon">🏓</div>
+        <div class="sport-name">PICKLEBALL</div>
+        <div class="sport-meta" id="meta-pickleball">Sin ligas</div>
+        <div class="sport-badge" id="badge-pickleball">0</div>
+      </div>
+    </div>
+    <div class="section-title">TODAS LAS LIGAS</div>
+    <div id="all-ligas-list"></div>
+  </div>
+
+  <!-- VIEW: SPORT -->
+  <div id="view-sport" class="view">
+    <div id="sport-ligas-list"></div>
+  </div>
+
+  <!-- VIEW: LIGA DETAIL -->
+  <div id="view-liga" class="view">
+    <div class="liga-header" id="liga-header-info"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('clasificacion')">Tabla</button>
+      <button class="tab" onclick="switchTab('partidos')">Partidos</button>
+      <button class="tab" onclick="switchTab('equipos')">Equipos</button>
+    </div>
+    <div id="tab-clasificacion"></div>
+    <div id="tab-partidos" style="display:none"></div>
+    <div id="tab-equipos" style="display:none"></div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab-btn" onclick="openFab()">+</button>
+
+<!-- BOTTOM NAV -->
+<div id="bottom-nav">
+  <button class="nav-btn active" onclick="navTo('home')" id="nav-home">
+    <span class="icon">🏠</span>
+    <span>Inicio</span>
+  </button>
+  <button class="nav-btn" onclick="navTo('ligas')" id="nav-ligas">
+    <span class="icon">🏆</span>
+    <span>Ligas</span>
+  </button>
+  <button class="nav-btn" onclick="navTo('stats')" id="nav-stats">
+    <span class="icon">📊</span>
+    <span>Resumen</span>
+  </button>
+</div>
+
+<!-- MODAL: NEW LIGA -->
+<div class="modal-overlay" id="modal-liga">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">NUEVA LIGA</div>
+    <div class="form-group">
+      <label class="form-label">Nombre de la liga</label>
+      <input class="form-input" id="liga-nombre" placeholder="Ej: Liga 3ºESO Fútbol T1" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Deporte</label>
+      <select class="form-input" id="liga-deporte">
+        <option value="football">⚽ Fútbol</option>
+        <option value="badminton">🏸 Bádminton</option>
+        <option value="handball">🤾 Balonmano</option>
+        <option value="pickleball">🏓 Pickleball</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Formato</label>
+      <div class="chip-row">
+        <div class="chip selected" data-format="liga" onclick="selectFormat(this)">Liga (todos vs todos)</div>
+        <div class="chip" data-format="eliminatorias" onclick="selectFormat(this)">Eliminatorias</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Curso / Grupo (opcional)</label>
+      <input class="form-input" id="liga-curso" placeholder="Ej: 3ºA, 4ºB, 1ºBach..." />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModal('modal-liga')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearLiga()">Crear Liga →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SCORE -->
+<div class="modal-overlay" id="modal-score">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="score-modal-title">RESULTADO</div>
+    <div class="score-inputs">
+      <div class="score-team">
+        <div class="score-team-name" id="score-team-a">LOCAL</div>
+        <div class="score-input-wrap">
+          <div class="score-stepper" onclick="changeScore('a',-1)">−</div>
+          <div class="score-val" id="score-val-a">0</div>
+          <div class="score-stepper" onclick="changeScore('a',1)">+</div>
+        </div>
+      </div>
+      <div class="score-vs">VS</div>
+      <div class="score-team">
+        <div class="score-team-name" id="score-team-b">VISITANTE</div>
+        <div class="score-input-wrap">
+          <div class="score-stepper" onclick="changeScore('b',-1)">−</div>
+          <div class="score-val" id="score-val-b">0</div>
+          <div class="score-stepper" onclick="changeScore('b',1)">+</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha (opcional)</label>
+      <input type="date" class="form-input" id="score-fecha" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModal('modal-score')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarResultado()">Guardar ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: STATS VIEW -->
+<div class="modal-overlay" id="modal-stats">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">RESUMEN GENERAL</div>
+    <div id="stats-content"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModal('modal-stats')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const SPORTS = {
+  football:   { name: 'Fútbol',     icon: '⚽', color: 'var(--football)' },
+  badminton:  { name: 'Bádminton',  icon: '🏸', color: 'var(--badminton)' },
+  handball:   { name: 'Balonmano',  icon: '🤾', color: 'var(--handball)' },
+  pickleball: { name: 'Pickleball', icon: '🏓', color: 'var(--pickleball)' },
+};
+let data = loadData();
+let currentView = 'home';
+let currentSport = null;
+let currentLiga = null;
+let currentTab = 'clasificacion';
+let currentPartidoIdx = null;
+let selectedFormat = 'liga';
+let scoreA = 0, scoreB = 0;
+const viewStack = [];
+
+// ─── STORAGE ──────────────────────────────────────────────────────────────────
+function loadData() {
+  try { return JSON.parse(localStorage.getItem('ligas_ies') || '{"ligas":[]}'); }
+  catch { return { ligas: [] }; }
+}
+function saveData() { localStorage.setItem('ligas_ies', JSON.stringify(data)); }
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function navTo(section) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + section)?.classList.add('active');
+  if (section === 'home') { showView('home'); }
+  else if (section === 'ligas') { showAllLigas(); }
+  else if (section === 'stats') { showStats(); }
+}
+function showView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view)?.classList.add('active');
+  currentView = view;
+  const backBtn = document.getElementById('back-btn');
+  backBtn.classList.toggle('visible', viewStack.length > 0);
+  const fab = document.getElementById('fab-btn');
+  if (view === 'liga') {
+    fab.style.display = 'flex';
+    fab.textContent = '+';
+  } else if (view === 'home' || view === 'sport') {
+    fab.style.display = 'flex';
+    fab.textContent = '+';
+  } else {
+    fab.style.display = 'flex';
+  }
+  renderHome();
+}
+function goBack() {
+  if (viewStack.length === 0) return;
+  const prev = viewStack.pop();
+  if (prev.view === 'home') { currentSport = null; currentLiga = null; showView('home'); }
+  else if (prev.view === 'sport') { currentLiga = null; openSport(prev.sport, false); }
+  else if (prev.view === 'liga') { openLiga(prev.ligaId, false); }
+}
+function openFab() {
+  if (currentView === 'liga') {
+    openAddEquipoModal();
+  } else {
+    openModal('modal-liga');
+  }
+}
+
+// ─── SPORT VIEW ───────────────────────────────────────────────────────────────
+function openSport(sport, pushStack = true) {
+  if (pushStack) viewStack.push({ view: 'home' });
+  currentSport = sport;
+  const s = SPORTS[sport];
+  document.getElementById('app-title').innerHTML = `<span>${s.icon}</span> ${s.name.toUpperCase()}`;
+  const ligas = data.ligas.filter(l => l.sport === sport);
+  const el = document.getElementById('sport-ligas-list');
+  if (ligas.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">${s.icon}</div><p>No hay ligas de ${s.name} todavía.<br>Pulsa <strong>+</strong> para crear una.</p></div>`;
+  } else {
+    el.innerHTML = ligas.map(l => ligaItemHTML(l)).join('');
+  }
+  showView('sport');
+}
+
+// ─── LIGA DETAIL ─────────────────────────────────────────────────────────────
+function openLiga(ligaId, pushStack = true) {
+  const liga = data.ligas.find(l => l.id === ligaId);
+  if (!liga) return;
+  if (pushStack) viewStack.push({ view: currentView === 'sport' ? 'sport' : 'home', sport: currentSport });
+  currentLiga = ligaId;
+  const s = SPORTS[liga.sport];
+  document.getElementById('app-title').innerHTML = liga.nombre.toUpperCase();
+  // header
+  document.getElementById('liga-header-info').innerHTML = `
+    <div class="lh-sport" style="color:${s.color}">${s.icon} ${s.name} · ${liga.formato === 'liga' ? 'Liga' : 'Eliminatorias'}</div>
+    <div class="lh-name">${liga.nombre}</div>
+    <div class="lh-meta">${liga.curso ? liga.curso + ' · ' : ''}${liga.equipos.length} equipos · ${liga.partidos.filter(p=>p.jugado).length}/${liga.partidos.length} partidos jugados</div>
+  `;
+  switchTab('clasificacion');
+  showView('liga');
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const tabs = ['clasificacion', 'partidos', 'equipos'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.getElementById('tab-clasificacion').style.display = tab === 'clasificacion' ? 'block' : 'none';
+  document.getElementById('tab-partidos').style.display = tab === 'partidos' ? 'block' : 'none';
+  document.getElementById('tab-equipos').style.display = tab === 'equipos' ? 'block' : 'none';
+  const liga = data.ligas.find(l => l.id === currentLiga);
+  if (!liga) return;
+  if (tab === 'clasificacion') renderClasificacion(liga);
+  if (tab === 'partidos') renderPartidos(liga);
+  if (tab === 'equipos') renderEquipos(liga);
+}
+
+// ─── CLASIFICACION ────────────────────────────────────────────────────────────
+function renderClasificacion(liga) {
+  const el = document.getElementById('tab-clasificacion');
+  if (liga.equipos.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">📋</div><p>Añade equipos en la pestaña "Equipos"<br>para ver la clasificación.</p></div>`;
+    return;
+  }
+  if (liga.formato === 'liga') renderTablaLiga(liga, el);
+  else renderBracket(liga, el);
+}
+
+function calcStandings(liga) {
+  const standings = {};
+  liga.equipos.forEach(e => {
+    standings[e.id] = { id: e.id, name: e.name, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
+  });
+  liga.partidos.forEach(p => {
+    if (!p.jugado) return;
+    const a = standings[p.a]; const b = standings[p.b];
+    if (!a || !b) return;
+    a.pj++; b.pj++;
+    a.gf += p.sa; a.gc += p.sb;
+    b.gf += p.sb; b.gc += p.sa;
+    if (p.sa > p.sb) { a.pg++; b.pp++; a.pts += 3; }
+    else if (p.sa < p.sb) { b.pg++; a.pp++; b.pts += 3; }
+    else { a.pe++; b.pe++; a.pts++; b.pts++; }
+  });
+  return Object.values(standings).sort((a,b) => b.pts - a.pts || (b.gf-b.gc) - (a.gf-a.gc));
+}
+
+function renderTablaLiga(liga, el) {
+  const standings = calcStandings(liga);
+  el.innerHTML = `
+    <div class="tabla-header liga-cols">
+      <span>#</span><span>Equipo</span><span>PJ</span><span>PG</span><span>PP</span><span>DG</span><span>Pts</span>
+    </div>
+    ${standings.map((s, i) => `
+      <div class="tabla-row liga-cols ${i===0?'top1':i===1?'top2':''}">
+        <span class="tabla-pos">${i+1}</span>
+        <span class="tabla-team">${s.name}</span>
+        <span class="tabla-num">${s.pj}</span>
+        <span class="tabla-num">${s.pg}</span>
+        <span class="tabla-num">${s.pp}</span>
+        <span class="tabla-num">${s.gf-s.gc>0?'+':''}${s.gf-s.gc}</span>
+        <span class="tabla-pts">${s.pts}</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderBracket(liga, el) {
+  if (liga.partidos.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">🏆</div><p>Genera el cuadro en la pestaña "Partidos".</p></div>`;
+    return;
+  }
+  const rounds = {};
+  liga.partidos.forEach(p => {
+    if (!rounds[p.ronda]) rounds[p.ronda] = [];
+    rounds[p.ronda].push(p);
+  });
+  const roundNames = { 1: 'FINAL', 2: 'SEMIFINALES', 4: 'CUARTOS', 8: 'OCTAVOS', 16: 'DIECISEISAVOS' };
+  const sortedRounds = Object.keys(rounds).sort((a,b) => b-a);
+  el.innerHTML = sortedRounds.map(round => {
+    const rmatches = rounds[round];
+    const teamMap = {};
+    liga.equipos.forEach(e => teamMap[e.id] = e.name);
+    return `
+      <div class="bracket-round">
+        <div class="bracket-round-title">${roundNames[round] || 'RONDA '+round}</div>
+        ${rmatches.map((p, pi) => {
+          const nameA = teamMap[p.a] || 'Por determinar';
+          const nameB = teamMap[p.b] || 'Por determinar';
+          const winA = p.jugado && p.sa > p.sb;
+          const winB = p.jugado && p.sb > p.sa;
+          return `
+            <div class="bracket-match" onclick="openScoreModal(${liga.partidos.indexOf(p)})">
+              <div class="bracket-team ${winA?'winner':''}">
+                <span>${nameA}</span>
+                ${p.jugado ? `<span class="bracket-score-val">${p.sa}</span>` : ''}
+              </div>
+              <div class="bracket-team ${winB?'winner':''}">
+                <span>${nameB}</span>
+                ${p.jugado ? `<span class="bracket-score-val">${p.sb}</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── PARTIDOS ─────────────────────────────────────────────────────────────────
+function renderPartidos(liga) {
+  const el = document.getElementById('tab-partidos');
+  if (liga.equipos.length < 2) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">📅</div><p>Necesitas al menos 2 equipos<br>para generar partidos.</p></div>`;
+    return;
+  }
+  const teamMap = {};
+  liga.equipos.forEach(e => teamMap[e.id] = e.name);
+  if (liga.partidos.length === 0) {
+    el.innerHTML = `
+      <div class="warning-box">⚠️ Los partidos aún no han sido generados.</div>
+      <button class="generate-btn" onclick="generarPartidos()">⚡ Generar ${liga.formato === 'liga' ? 'calendario' : 'cuadro'}</button>
+    `;
+    return;
+  }
+  const pending = liga.partidos.filter(p => !p.jugado);
+  const played = liga.partidos.filter(p => p.jugado);
+  let html = '';
+  if (pending.length > 0) {
+    html += `<div class="section-title" style="font-size:16px;margin-bottom:10px">PENDIENTES (${pending.length})</div>`;
+    html += pending.map(p => partidoCardHTML(p, liga, teamMap)).join('');
+  }
+  if (played.length > 0) {
+    html += `<div class="section-title" style="font-size:16px;margin:16px 0 10px">JUGADOS (${played.length})</div>`;
+    html += played.map(p => partidoCardHTML(p, liga, teamMap)).join('');
+  }
+  el.innerHTML = html;
+}
+
+function partidoCardHTML(p, liga, teamMap) {
+  const idx = liga.partidos.indexOf(p);
+  const nameA = teamMap[p.a] || '?';
+  const nameB = teamMap[p.b] || '?';
+  const scoreHTML = p.jugado
+    ? `<div class="partido-score">${p.sa} – ${p.sb}</div>`
+    : `<div class="partido-score pending">vs</div>`;
+  return `
+    <div class="partido-card ${p.jugado?'jugado':''}" onclick="openScoreModal(${idx})">
+      ${p.fecha ? `<div class="partido-fecha">📅 ${p.fecha}</div>` : ''}
+      <div class="partido-teams">
+        <span class="partido-team">${nameA}</span>
+        ${scoreHTML}
+        <span class="partido-team away">${nameB}</span>
+      </div>
+      <span class="partido-badge ${p.jugado?'jugado':'pendiente'}">${p.jugado?'✓ Jugado':'Pendiente'}</span>
+    </div>
+  `;
+}
+
+// ─── EQUIPOS ─────────────────────────────────────────────────────────────────
+function renderEquipos(liga) {
+  const el = document.getElementById('tab-equipos');
+  const s = SPORTS[liga.sport];
+  let html = `
+    <div class="add-team-inline">
+      <input class="form-input" id="new-equipo-name" placeholder="Nombre del equipo o clase..." />
+      <button class="btn btn-primary" style="flex:0 0 auto;padding:12px 16px" onclick="addEquipo()">+ Añadir</button>
+    </div>
+  `;
+  if (liga.equipos.length === 0) {
+    html += `<div class="empty-state"><div class="es-icon">👥</div><p>Añade los equipos participantes.</p></div>`;
+  } else {
+    html += liga.equipos.map(e => `
+      <div class="equipo-row">
+        <div class="equipo-avatar" style="background:${s.color}22;color:${s.color}">${s.icon}</div>
+        <div class="equipo-info">
+          <div class="equipo-name">${e.name}</div>
+          ${e.curso ? `<div class="equipo-sub">${e.curso}</div>` : ''}
+        </div>
+        <button class="equipo-del" onclick="deleteEquipo('${e.id}')">✕</button>
+      </div>
+    `).join('');
+    if (liga.partidos.length === 0) {
+      html += `<button class="generate-btn" style="margin-top:16px" onclick="generarPartidos()">⚡ Generar ${liga.formato === 'liga' ? 'calendario' : 'cuadro'}</button>`;
+    }
+  }
+  el.innerHTML = html;
+}
+
+function addEquipo() {
+  const input = document.getElementById('new-equipo-name');
+  const name = input.value.trim();
+  if (!name) return;
+  const liga = data.ligas.find(l => l.id === currentLiga);
+  if (!liga) return;
+  if (liga.partidos.length > 0) {
+    showToast('Borra los partidos antes de añadir equipos', true);
+    return;
+  }
+  liga.equipos.push({ id: 'eq_' + Date.now(), name, curso: '' });
+  saveData();
+  input.value = '';
+  renderEquipos(liga);
+  updateLigaHeader(liga);
+  showToast('Equipo añadido ✓');
+}
+
+function deleteEquipo(eqId) {
+  const liga = data.ligas.find(l => l.id === currentLiga);
+  if (!liga) return;
+  if (liga.partidos.length > 0) { showToast('Borra los partidos primero', true); return; }
+  liga.equipos = liga.equipos.filter(e => e.id !== eqId);
+  saveData();
+  renderEquipos(liga);
+  updateLigaHeader(liga);
+}
+
+function openAddEquipoModal() {
+  if (currentTab !== 'equipos') switchTab('equipos');
+  document.getElementById('new-equipo-name')?.focus();
+}
+
+// ─── GENERATE CALENDAR ────────────────────────────────────────────────────────
+function generarPartidos() {
+  const liga = data.ligas.find(l => l.id === currentLiga);
+  if (!liga || liga.equipos.length < 2) return;
+  if (liga.formato === 'liga') generarLiga(liga);
+  else generarEliminatorias(liga);
+  saveData();
+  renderPartidos(liga);
+  updateLigaHeader(liga);
+  showToast('Partidos generados ✓');
+}
+
+function generarLiga(liga) {
+  const eq = [...liga.equipos];
+  const partidos = [];
+  // round-robin
+  if (eq.length % 2 !== 0) eq.push({ id: 'bye', name: 'Bye' });
+  const n = eq.length;
+  for (let r = 0; r < n - 1; r++) {
+    for (let i = 0; i < n / 2; i++) {
+      const a = eq[i]; const b = eq[n - 1 - i];
+      if (a.id !== 'bye' && b.id !== 'bye') {
+        partidos.push({ id: 'p_' + Date.now() + '_' + partidos.length, a: a.id, b: b.id, sa: 0, sb: 0, jugado: false, fecha: '' });
+      }
+    }
+    eq.splice(1, 0, eq.pop());
+  }
+  liga.partidos = partidos;
+}
+
+function generarEliminatorias(liga) {
+  const eq = [...liga.equipos];
+  // pad to power of 2
+  let size = 1;
+  while (size < eq.length) size *= 2;
+  const byes = size - eq.length;
+  const shuffled = eq.sort(() => Math.random() - 0.5);
+  const partidos = [];
+  const ronda = size / 2;
+  for (let i = 0; i < size / 2; i++) {
+    const a = shuffled[i * 2] || null;
+    const b = shuffled[i * 2 + 1] || null;
+    if (a && b) {
+      partidos.push({ id: 'p_' + Date.now() + '_' + i, a: a.id, b: b.id, sa: 0, sb: 0, jugado: false, fecha: '', ronda });
+    } else if (a) {
+      // bye — auto advance
+      partidos.push({ id: 'p_bye_' + i, a: a.id, b: 'bye', sa: 1, sb: 0, jugado: true, fecha: '', ronda, isBye: true });
+    }
+  }
+  liga.partidos = partidos;
+}
+
+// ─── SCORE MODAL ──────────────────────────────────────────────────────────────
+function openScoreModal(idx) {
+  const liga = data.ligas.find(l => l.id === currentLiga);
+  if (!liga) return;
+  const p = liga.partidos[idx];
+  if (!p) return;
+  currentPartidoIdx = idx;
+  const teamMap = {};
+  liga.equipos.forEach(e => teamMap[e.id] = e.name);
+  document.getElementById('score-team-a').textContent = teamMap[p.a] || 'Equipo A';
+  document.getElementById('score-team-b').textContent = teamMap[p.b] || 'Equipo B';
+  scoreA = p.jugado ? p.sa : 0;
+  scoreB = p.jugado ? p.sb : 0;
+  document.getElementById('score-val-a').textContent = scoreA;
+  document.getElementById('score-val-b').textContent = scoreB;
+  document.getElementById('score-fecha').value = p.fecha || '';
+  openModal('modal-score');
+}
+
+function changeScore(team, delta) {
+  if (team === 'a') { scoreA = Math.max(0, scoreA + delta); document.getElementById('score-val-a').textContent = scoreA; }
+  else { scoreB = Math.max(0, scoreB + delta); document.getElementById('score-val-b').textContent = scoreB; }
+}
+
+function guardarResultado() {
+  const liga = data.ligas.find(l => l.id === currentLiga);
+  if (!liga || currentPartidoIdx === null) return;
+  const p = liga.partidos[currentPartidoIdx];
+  p.sa = scoreA; p.sb = scoreB; p.jugado = true;
+  p.fecha = document.getElementById('score-fecha').value;
+  // If eliminatorias, advance winner
+  if (liga.formato === 'eliminatorias') advanceElim(liga, p);
+  saveData();
+  closeModal('modal-score');
+  switchTab(currentTab);
+  updateLigaHeader(liga);
+  showToast('Resultado guardado ✓');
+}
+
+function advanceElim(liga, playedPartido) {
+  const rondaActual = playedPartido.ronda;
+  const siguienteRonda = rondaActual / 2;
+  if (siguienteRonda < 1) return;
+  // Check if all matches in current round are played
+  const roundMatches = liga.partidos.filter(p => p.ronda === rondaActual && !p.isBye);
+  const allPlayed = roundMatches.every(p => p.jugado);
+  if (!allPlayed) return;
+  // Get winners
+  const winners = roundMatches.map(p => p.sa >= p.sb ? p.a : p.b);
+  // Create next round if not exists
+  const nextRoundExists = liga.partidos.some(p => p.ronda === siguienteRonda);
+  if (!nextRoundExists) {
+    for (let i = 0; i < winners.length; i += 2) {
+      if (winners[i+1]) {
+        liga.partidos.push({ id: 'p_' + Date.now() + '_' + i, a: winners[i], b: winners[i+1], sa: 0, sb: 0, jugado: false, fecha: '', ronda: siguienteRonda });
+      }
+    }
+  }
+}
+
+// ─── CREATE LIGA ─────────────────────────────────────────────────────────────
+function selectFormat(el) {
+  document.querySelectorAll('#modal-liga .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedFormat = el.dataset.format;
+}
+
+function crearLiga() {
+  const nombre = document.getElementById('liga-nombre').value.trim();
+  const sport = document.getElementById('liga-deporte').value;
+  const curso = document.getElementById('liga-curso').value.trim();
+  if (!nombre) { showToast('Escribe un nombre para la liga', true); return; }
+  const liga = { id: 'l_' + Date.now(), nombre, sport, formato: selectedFormat, curso, equipos: [], partidos: [] };
+  data.ligas.push(liga);
+  saveData();
+  closeModal('modal-liga');
+  document.getElementById('liga-nombre').value = '';
+  document.getElementById('liga-curso').value = '';
+  showToast('Liga creada ✓');
+  openLiga(liga.id);
+}
+
+// ─── HOME RENDER ─────────────────────────────────────────────────────────────
+function renderHome() {
+  if (currentView !== 'home') {
+    // update badges
+    Object.keys(SPORTS).forEach(sport => {
+      const count = data.ligas.filter(l => l.sport === sport).length;
+      const badge = document.getElementById('badge-' + sport);
+      const meta = document.getElementById('meta-' + sport);
+      if (!badge || !meta) return;
+      badge.textContent = count;
+      badge.className = 'sport-badge' + (count > 0 ? ' has-leagues' : '');
+      meta.textContent = count > 0 ? count + ' liga' + (count > 1 ? 's' : '') : 'Sin ligas';
+    });
+    return;
+  }
+  Object.keys(SPORTS).forEach(sport => {
+    const count = data.ligas.filter(l => l.sport === sport).length;
+    const badge = document.getElementById('badge-' + sport);
+    const meta = document.getElementById('meta-' + sport);
+    if (!badge || !meta) return;
+    badge.textContent = count;
+    badge.className = 'sport-badge' + (count > 0 ? ' has-leagues' : '');
+    meta.textContent = count > 0 ? count + ' liga' + (count > 1 ? 's' : '') : 'Sin ligas';
+  });
+  const allEl = document.getElementById('all-ligas-list');
+  if (data.ligas.length === 0) {
+    allEl.innerHTML = `<div class="empty-state"><div class="es-icon">🏆</div><p>No hay ligas todavía.<br>Pulsa <strong>+</strong> para crear la primera.</p></div>`;
+  } else {
+    allEl.innerHTML = data.ligas.slice().reverse().map(l => ligaItemHTML(l)).join('');
+  }
+  document.getElementById('app-title').innerHTML = 'LIGAS <span>IES</span>';
+}
+
+function showAllLigas() {
+  viewStack.length = 0;
+  currentSport = null;
+  currentLiga = null;
+  navTo('home');
+}
+
+function updateLigaHeader(liga) {
+  const s = SPORTS[liga.sport];
+  document.getElementById('liga-header-info').innerHTML = `
+    <div class="lh-sport" style="color:${s.color}">${s.icon} ${s.name} · ${liga.formato === 'liga' ? 'Liga' : 'Eliminatorias'}</div>
+    <div class="lh-name">${liga.nombre}</div>
+    <div class="lh-meta">${liga.curso ? liga.curso + ' · ' : ''}${liga.equipos.length} equipos · ${liga.partidos.filter(p=>p.jugado).length}/${liga.partidos.length} partidos jugados</div>
+  `;
+}
+
+function ligaItemHTML(l) {
+  const s = SPORTS[l.sport];
+  const jugados = l.partidos.filter(p => p.jugado && !p.isBye).length;
+  const total = l.partidos.filter(p => !p.isBye).length;
+  const status = total === 0 ? 'pendiente' : jugados === total && total > 0 ? 'finalizada' : 'activa';
+  const statusLabel = { pendiente: 'Sin iniciar', activa: 'En curso', finalizada: 'Finalizada' };
+  return `
+    <div class="liga-item" onclick="openLiga('${l.id}')">
+      <div class="liga-dot" style="background:${s.color}"></div>
+      <div class="liga-info">
+        <div class="liga-name">${l.nombre}</div>
+        <div class="liga-sub">${s.icon} ${s.name} · ${l.formato === 'liga' ? 'Liga' : 'Elim.'} · ${l.equipos.length} equipos</div>
+      </div>
+      <div>
+        <span class="liga-status ${status}">${statusLabel[status]}</span>
+      </div>
+      <span class="liga-arrow">›</span>
+    </div>
+  `;
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function showStats() {
+  const total = data.ligas.length;
+  const jugados = data.ligas.reduce((s, l) => s + l.partidos.filter(p => p.jugado && !p.isBye).length, 0);
+  const equipos = data.ligas.reduce((s, l) => s + l.equipos.length, 0);
+  const activas = data.ligas.filter(l => {
+    const total2 = l.partidos.filter(p => !p.isBye).length;
+    return total2 > 0 && l.partidos.filter(p => p.jugado && !p.isBye).length < total2;
+  }).length;
+  document.getElementById('stats-content').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Ligas creadas</div></div>
+      <div class="stat-card"><div class="stat-num">${activas}</div><div class="stat-label">En curso</div></div>
+      <div class="stat-card"><div class="stat-num">${equipos}</div><div class="stat-label">Equipos totales</div></div>
+      <div class="stat-card"><div class="stat-num">${jugados}</div><div class="stat-label">Partidos jugados</div></div>
+    </div>
+    <div class="divider"></div>
+    ${Object.keys(SPORTS).map(sport => {
+      const ls = data.ligas.filter(l => l.sport === sport);
+      const s = SPORTS[sport];
+      if (ls.length === 0) return '';
+      return `
+        <div class="section-title" style="font-size:16px;margin-bottom:10px">${s.icon} ${s.name}</div>
+        ${ls.map(l => {
+          if (l.formato !== 'liga' || l.equipos.length === 0) return '';
+          const standings = calcStandings(l);
+          const leader = standings[0];
+          return `
+            <div class="liga-item" style="cursor:default;margin-bottom:8px">
+              <div class="liga-dot" style="background:${s.color}"></div>
+              <div class="liga-info">
+                <div class="liga-name">${l.nombre}</div>
+                <div class="liga-sub">Líder: <strong>${leader ? leader.name : '—'}</strong> ${leader ? '('+leader.pts+' pts)' : ''}</div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      `;
+    }).join('')}
+  `;
+  openModal('modal-stats');
+}
+
+// ─── MODAL HELPERS ────────────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg, error = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (error ? ' error' : '');
+  setTimeout(() => t.className = '', 2200);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderHome();
+</script>
+
+<!-- PWA SERVICE WORKER REGISTER -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
